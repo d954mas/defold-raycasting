@@ -1,0 +1,46 @@
+local locale = require "libs.i18n.init"
+local sm = require "scene_manager.scene_manager" 
+local input = require "libs.input"
+local InputReceiver = require "libs.input_receiver"
+
+local ru = require("assets.localization.ru")
+local en = require("assets.localization.en")
+
+
+local function create_url(name) 
+	return msg.url("main:" .. name) 
+end 
+
+local scenes = { 
+	{name = "game", url = create_url("/game#collectionproxy"), controller = msg.url("game:/controller#script"),  popup = "false", need_unload = false},
+}
+
+local function back_scene(self, action_id, action)
+	sm.back() 			
+end
+
+local function toggle_profiler(self, action_id, action)
+	msg.post("@system:", "toggle_profile")	
+end
+
+function init(self)
+	math.randomseed(os.time())
+	--msg.post("@system:", "toggle_profile")	
+	input.acquire()
+	self.input_receiver = InputReceiver.new()
+	self.input_receiver:add(hash("back_scene"), back_scene, true)
+	self.input_receiver:add(hash("toggle_profiler"), toggle_profiler, true)
+	locale.load(require("assets.localization.ru"))
+	locale.load(require("assets.localization.en"))
+	locale.setLocale("ru")
+	sm.register_scenes(scenes)
+	sm.show("game")
+end
+
+function final(self)
+	input.release()	
+end	
+
+function on_input(self, action_id, action)
+	self.input_receiver:on_input(self, action_id, action)
+end	

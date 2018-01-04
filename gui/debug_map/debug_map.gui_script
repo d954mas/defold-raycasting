@@ -1,0 +1,51 @@
+local WORLD = require "libs.world"
+local HASHES = require "libs.hashes"
+local RAYS = require "libs.rays"
+
+local EMPTY_COLOR = string.char(0x00) .. string.char(0x00) .. string.char(0x00)
+local BLOCK_COLOR = string.char(0xff) .. string.char(0xff) .. string.char(0xff)
+local SCALE = vmath.vector3(8, 8, 1)
+local map_pos
+local player_pos
+local function init_map(self)
+	local map_width = WORLD.map.WIDTH
+	local map_height = WORLD.map.HEIGHT
+	local pixels = ""
+	for y = map_height, 1, -1 do
+		for x=1, map_width do
+			pixels = pixels .. (WORLD.map.MAP[y][x]>0 and BLOCK_COLOR or EMPTY_COLOR)
+		end
+	end
+	gui.new_texture("map", map_width, map_height, "rgb", pixels)
+	gui.set_texture(self.map_node, "map")
+	gui.set_scale(self.map_node, SCALE)
+	self.map_pos = gui.get_position(self.map_node)
+	self.player_pos = gui.get_position(self.player_node)
+end
+
+function init(self)
+	self.map_node = gui.get_node("map")
+	self.player_node = gui.get_node("player")
+	init_map(self)
+end
+
+local function draw_ray(start_x, start_y, end_x, end_y)
+--	print("(" .. start_x .. " " .. start_y .. ") (".. end_x .. " " .. end_y .. ")")
+	msg.post("@render:", "draw_line", {start_point = vmath.vector3(start_x, start_y, 0),
+	end_point = vmath.vector3(end_x, end_y, 0), color = vmath.vector4(1, 0, 0, 1)}) 
+end
+
+local function on_ray_intersept(self, dist, x, y)
+	local position = WORLD.player.position
+	local map_x = self.map_pos.x
+	local map_y = self.map_pos.y
+	draw_ray(map_x + position.x * SCALE.x , map_y + position.y * SCALE.y,
+		map_x + x * SCALE.x, map_y + y * SCALE.y)
+end	
+
+function update(self)
+	self.player_pos.x = self.map_pos.x + WORLD.player.position.x * SCALE.x
+	self.player_pos.y = self.map_pos.y + WORLD.player.position.y * SCALE.y
+	gui.set_position(self.player_node, self.player_pos)
+	RAYS.cast_rays(WORLD.player, WORLD.map.MAP, on_ray_intersept, self)
+end	

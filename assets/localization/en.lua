@@ -1,0 +1,5 @@
+return {
+en = {
+    hello = "hello",
+	}
+}

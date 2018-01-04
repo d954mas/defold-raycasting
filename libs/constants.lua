@@ -1,5 +1,6 @@
 local M = {}
 M.WINDOW_WIDTH = 405
 M.WINDOW_HEIGHT = 720
-
+M.PLAYER_RAYS = 80
+M.PLAYER_FOV = 80 * 3.1415 / 180 
 return M

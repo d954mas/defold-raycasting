@@ -1,0 +1,35 @@
+local WORLD = require "libs.world"
+local InputReceiver = require "libs.input_receiver"
+
+local function up(self)
+	WORLD.player.position.y = WORLD.player.position.y + 1
+end	
+
+local function down(self)
+	WORLD.player.position.y = WORLD.player.position.y - 1
+end	
+
+local function left(self)
+	WORLD.player.position.x = WORLD.player.position.x - 1
+end	
+
+local function right(self)
+	WORLD.player.position.x = WORLD.player.position.x + 1
+end	
+
+function init(self)
+	self.input_receiver = InputReceiver.new()
+	self.input_receiver.acquire()
+	self.input_receiver:add(hash("up"), up, true)
+	self.input_receiver:add(hash("down"), down, true)
+	self.input_receiver:add(hash("left"), left, true)
+	self.input_receiver:add(hash("right"), right, true)
+end
+
+function final(self)
+	self.input_receiver.release()	
+end	
+
+function on_input(self, action_id, action)
+	self.input_receiver:on_input(self, action_id, action)
+end	
