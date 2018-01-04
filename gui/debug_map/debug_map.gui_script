@@ -4,7 +4,7 @@ local RAYS = require "libs.rays"
 
 local EMPTY_COLOR = string.char(0x00) .. string.char(0x00) .. string.char(0x00)
 local BLOCK_COLOR = string.char(0xff) .. string.char(0xff) .. string.char(0xff)
-local SCALE = vmath.vector3(8, 8, 1)
+local SCALE = vmath.vector3(5, 5, 1)
 local map_pos
 local player_pos
 local function init_map(self)

@@ -1,0 +1,49 @@
+local INPUT = require "libs.input"
+local WORLD = require "libs.world"
+local SCREEN = require "libs.screen"
+local CONST = require "libs.constants"
+local RAYS = require "libs.rays"
+
+function init(self)
+	self.resource_path = go.get("#model", "texture0")
+	self.native_table = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, leds = SCREEN.NODES}
+	go.set_position(vmath.vector3(SCREEN.WIDTH/2, SCREEN.HEIGHT/2, 0))
+	local scale = vmath.vector3(50 * SCREEN.WIDTH, 50 * SCREEN.HEIGHT, 1)
+	go.set_scale(scale)
+end
+
+local function get_color(cell)
+	if cell == 1 then return 0xFF0000 end
+	if cell == 2 then return 0x00FF00 end
+	if cell == 3 then return 0x0000FF end
+	if cell == 4 then return 0xFFFFFF end
+	return 0xFF00FF 
+end	
+
+local function ver_line(x, draw_start, draw_end, color)
+	for y = draw_start, draw_end do
+		SCREEN.set_node(x, y, color)
+	end	
+end	
+
+local function on_ray_intersept(self, dist, x, y, cell, ray, hit_x, perp_dist)
+	local line_height = math.floor(SCREEN.HEIGHT / perp_dist)
+	local draw_start = math.floor(-line_height / 2 + SCREEN.HEIGHT / 2)
+	local draw_end = math.floor(line_height / 2 + SCREEN.HEIGHT / 2)
+	if draw_start < 0 then draw_start = 0 end
+	if draw_end >= SCREEN.HEIGHT then draw_end = SCREEN.HEIGHT - 1 end
+	local color = get_color(cell)
+	if hit_x then color = color/2 end
+	ver_line(ray, draw_start, draw_end, color)
+end	
+
+function update(self, dt)
+	print("***************")
+	SCREEN.clear()
+	RAYS.cast_rays(WORLD.player, WORLD.map.MAP, on_ray_intersept, self)
+	SCREEN.draw()
+	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
+	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
+end
+
+

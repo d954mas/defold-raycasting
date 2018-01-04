@@ -24,7 +24,7 @@ local function count_sx_and_step(dx, map_x, x, abs_dx)
 	return sx, step_x
 end
 	
-local function find_ray_intersept(x, y, angle, cells)
+local function find_ray_intersept(x, y, center_angle, angle, cells)
 	local map_x = ceil(x)
     local map_y = ceil(y)
     
@@ -64,7 +64,8 @@ local function find_ray_intersept(x, y, angle, cells)
 			end
 			catet_x = dist * angle_sin
 			catet_y = dist * angle_cos
-			return dist, x + catet_x , y + catet_y, cell
+			perp_dist = dist * math.cos((center_angle - angle))
+			return dist, x + catet_x , y + catet_y, cell, hit_x, perp_dist
 		end	
 	end	
 end
@@ -73,8 +74,8 @@ end
 function M.cast_rays(player, wall_cells, fun, go_self)
 	local start_rot = player.angle - M.half_fov
 	for i=1 , CONST.PLAYER_RAYS do
-		local dist, x, y, cell = find_ray_intersept(player.position.x,player.position.y,start_rot + M.ray_angle * (i-1),wall_cells)
-		if fun then fun(go_self, dist, x, y) end
+		local dist, x, y, cell, hit_x, perp_dist = find_ray_intersept(player.position.x, player.position.y, player.angle, start_rot + M.ray_angle * (i-1), wall_cells)
+		if fun then fun(go_self, dist, x, y, cell, i, hit_x, perp_dist) end
 	end
 	return wall_cells
 end

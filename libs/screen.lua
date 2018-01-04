@@ -9,12 +9,18 @@ M.HEIGHT = CONST.WINDOW_HEIGHT
 M.BUFFER = buffer.create(M.WIDTH * M.HEIGHT, { {name=hash("rgb"), type=buffer.VALUE_TYPE_UINT8, count=3} } )
 M.NODES = {}
 
+local native_table = {width = M.WIDTH, height = M.HEIGHT, leds = M.NODES}
+
 function M.clear()
 	for id = 1, M.WIDTH * M.HEIGHT do
 		M.NODES[id] = EMPTY_COLOR
 	end	
 end
 M.clear()
+
+function M.draw()
+	native_draw.draw_pixels(native_table, M.BUFFER) 
+end	
 
 function M.get_node(x, y)
 	return M.NODES[(y-1) * M.WIDTH + x]
@@ -26,3 +32,5 @@ function M.set_node(x, y, color)
 		M.NODES[(y-1) * M.WIDTH + x] =  color or COLORS.EMPTY
 	end	
 end	
+
+return M
