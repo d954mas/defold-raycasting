@@ -11,8 +11,8 @@ game_binding = /game.input_bindingc
 use_accelerometer = 0
 
 [display]
-width = 1280
-height = 720
+width = 640
+height = 480
 display_profiles = /render/my.display_profilesc
 
 [physics]
