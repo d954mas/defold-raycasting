@@ -17,6 +17,14 @@ local function right(self)
 	WORLD.player.position.x = WORLD.player.position.x + 1
 end	
 
+local function rotate_left(self)
+	WORLD.player.angle = WORLD.player.angle + 0.1
+end	
+
+local function rotate_right(self)
+	WORLD.player.angle = WORLD.player.angle - 0.1
+end	
+
 function init(self)
 	self.input_receiver = InputReceiver.new()
 	self.input_receiver.acquire()
@@ -24,6 +32,8 @@ function init(self)
 	self.input_receiver:add(hash("down"), down, true)
 	self.input_receiver:add(hash("left"), left, true)
 	self.input_receiver:add(hash("right"), right, true)
+	self.input_receiver:add(hash("rotate_left"), rotate_left, true)
+	self.input_receiver:add(hash("rotate_right"), rotate_right, true)
 end
 
 function final(self)
