@@ -1,0 +1,40 @@
+key_trigger {
+  input: KEY_BACK
+  action: "back_scene"
+}
+key_trigger {
+  input: KEY_W
+  action: "up"
+}
+key_trigger {
+  input: KEY_A
+  action: "left"
+}
+key_trigger {
+  input: KEY_S
+  action: "down"
+}
+key_trigger {
+  input: KEY_D
+  action: "right"
+}
+key_trigger {
+  input: KEY_BACKSPACE
+  action: "toggle_profiler"
+}
+key_trigger {
+  input: KEY_MENU
+  action: "toggle_profiler"
+}
+key_trigger {
+  input: KEY_1
+  action: "first_scene"
+}
+key_trigger {
+  input: KEY_2
+  action: "second_scene"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_1
+  action: "touch"
+}

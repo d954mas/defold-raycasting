@@ -1,0 +1,200 @@
+local HASHES = require "scene_manager.hashes"
+local SM = require "scene_manager.scene_manager"
+local Stack = require "scene_manager.stack"
+local MsgReceiver = require "scene_manager.msg_receiver"
+
+--[[
+1)Добавить возможность замены стека. Например был стек из 3 переходов.
+Я меняю его на новый стек, с новым экраном
+2)Возможность перезагрузки сцены
+3)Добавить контроллер на сцену, которые при переходе может инициализирвоать сцену
+и освобождать ресурсы
+
+]]
+
+go.property("log_info", true)
+go.property("log_time", true)
+go.property("unload_all", false)
+
+local scenes = SM.scenes
+
+local loaded_scenes = {}
+local enabled_scenes = {}
+local stack = Stack.new()
+
+local co = nil
+
+local function need_unload(self, scene)
+	return self.unload_all or scene.need_unload
+end	
+
+local function info(self, str)
+	if self.log_info then print("SCENE_MANAGER:" .. str) end
+end
+
+local function get_scene(message)
+	local scene = scenes[message.name]
+	assert(scene, "can't find scene for name " .. message.name)
+	return scene
+end	
+
+--LOAD/UNLOAD
+local function release_input(self, scene)
+	msg.post(scene.url, HASHES.MSG_RELEASE_INPUT)
+	info(self, "input for " .. scene.name .. " was released")
+end
+
+local function acquire_input(self, scene)
+	msg.post(scene.url, HASHES.MSG_ACQUIRE_INPUT)
+	info(self, "input for " .. scene.name .. " was acquired")
+end	
+
+local function disable_scene(self, scene)
+	if enabled_scenes[scene.name] then
+		msg.post(scene.url, HASHES.MSG_DISABLE)
+		enabled_scenes[scene.name] = false
+		info(self, "scene:" .. scene.name .. " was disabled")
+	else
+		info(self, "can't disable not enabled scene:" .. scene.name)
+	end
+end
+
+local function enable_scene(self, scene)
+	if not enabled_scenes[scene.name] then
+		msg.post(scene.url, HASHES.MSG_ENABLE)
+		enabled_scenes[scene.name] = true
+		info(self, "scene:" .. scene.name .. " was enable")
+	else
+		info(self, "scene:" .. scene.name " was already enabled")
+	end
+end
+
+--unload scene
+local function unload_scene(self, scene)
+	if enabled_scenes[scene.name] then
+		info(self, "can't unload enabled scene")
+	elseif(loaded_scenes[scene.name]) then
+		msg.post(scene.url, HASHES.MSG_UNLOAD)
+		loaded_scenes[scene.name] = false
+		info(self, "scene:" .. scene.name .. " was unload")
+	else
+		info(self, "can't unload not loading scene:" .. scene.name)
+	end
+end
+
+
+local function load_scene(self, scene)
+	if not loaded_scenes[scene.name] then
+		msg.post(scene.url, "async_load")
+		local start_loading_time = os.clock()
+		info(scene, "start to load scene:" .. scene.name)
+		coroutine.yield()
+		info(self, "scene " .. scene.name .. " was loaded")
+		loaded_scenes[scene.name] = true
+		if self.log_time then
+			print("SCENE_MANAGER:loading time:".. os.clock()-start_loading_time)
+		end	
+	else
+		info(self, "scene:" .. scene.name .. " already loaded")
+	end
+end
+
+local function send_input(self, scene_data)
+	if scene_data.input == nil then
+		info(self, "no input for scene:" .. scene_data.scene.name)
+		return 
+	end	
+	local input = nil
+	if scene_data.input ~= nil then
+		input = {input = scene_data.input}
+	end	
+	info(self, "scene:" .. scene_data.scene.name .. " send input:")
+	if self.log_info  then pprint(input) end
+	if input ~= nil  then
+		msg.post(scene_data.scene.controller, HASHES.MSG_SEND_INPUT, input)
+	else
+		--msg.post(scene_data.scene.controller, HASHES.MSG_SEND_INPUT)	
+	end
+	
+end	
+
+
+--COROUTUINES FUN
+--show top scene, hide prev scene
+local function show_new_scene(self, prev_scene_data)
+	local scene_data = stack:peek(1)
+	if not scene_data.scene.controller then	
+		assert(not scene_data.input, "Can't send input. No controller for scene:" .. scene_data.scene.name)
+	end
+	if prev_scene_data ~= nil then
+		release_input(self, prev_scene_data.scene)
+	end
+
+	acquire_input(self, scene_data.scene)
+	load_scene(self, scene_data.scene)
+	enable_scene(self, scene_data.scene)
+	send_input(self, scene_data)
+	if prev_scene_data ~= nil then
+		if need_unload(self, prev_scene_data.scene) then
+			disable_scene(self,prev_scene_data.scene)
+			unload_scene(self, prev_scene_data.scene)
+		else
+			disable_scene(self,prev_scene_data.scene)
+		end	
+	end
+	co = nil
+end	
+
+local function show_coroutine_fun(self)
+	local prev_scene = stack:peek(2)
+	show_new_scene(self, prev_scene)
+end
+
+local function back_coroutine_fun(self)
+	local prev_scene = stack:pop()
+	show_new_scene(self, prev_scene)
+end	
+
+local function show(self, message_id, message)
+	assert(not co, "can't show scene while loading")
+	local scene = get_scene(message)
+	assert(stack:is_empty() or stack:peek().scene.name ~= scene.name, "scene " .. scene.name .. " already on top")
+	info(self, "show " .. scene.name)
+	stack:push({scene=scene, input = message.input})
+	co = coroutine.create(show_coroutine_fun)
+	local ok, res = coroutine.resume(co, self)
+	if not ok then print(res)  co = nil end
+end
+
+local function back(self, message_id, message)
+	info(self, "back")
+	assert(stack:size() > 1," can't go back.No scenes")
+	co = coroutine.create(back_coroutine_fun)
+	local ok, res = coroutine.resume(co, self)
+	if not ok then print(res)  co = nil end
+end	
+
+local function loaded(self, message_id, message, sender)
+	assert(co, "loading coroutine can't be nil")
+	local scene = stack:peek().scene
+	assert(scene.url ~= sender, "loaded scene not on top")
+	local ok, res = coroutine.resume(co, self)
+	if not ok then print(res)  co = nil end
+end	
+
+function init(self)
+	SM.router_url = msg.url()
+	log_info = self.log_info
+	log_time = self.log_time
+	unload_all = self.unload_all
+	self.msg_receiver = MsgReceiver.new()
+	self.msg_receiver:add(HASHES.MSG_SHOW, show)
+	self.msg_receiver:add(HASHES.MSG_BACK, back)
+	self.msg_receiver:add(HASHES.MSG_PROXY_LOADED, loaded)
+	info(self, "inited")
+end
+
+function on_message(self, message_id, message)
+	self.msg_receiver:on_message(self, message_id, message)
+end
+
