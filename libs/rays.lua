@@ -54,7 +54,7 @@ local function find_ray_intersept(x, y, ray_angle, angle, cells)
 		end
 		local cell = cells[map_y][map_x]
 		if cell > 0 then
-			local dist, catet_x, catet_y, perp_dist
+			local dist, catet_x, catet_y, perp_dist, texture_x
 			if(hit_x) then
 				sx = sx - abs_dx --remove last dx
 				dist = sx
@@ -64,9 +64,10 @@ local function find_ray_intersept(x, y, ray_angle, angle, cells)
 			end
 			catet_x = dist * angle_sin
 			catet_y = dist * angle_cos
+			texture_x = not hit_x and  (catet_x % 1) or (catet_y % 1)
 			--perp_dist = dist * math.cos((angle))
 			perp_dist = dist *  math.cos(ray_angle)
-			return dist, x + catet_x , y + catet_y, cell, hit_x, perp_dist
+			return dist, x + catet_x , y + catet_y, cell, hit_x, perp_dist, texture_x
 		end	
 	end	
 end
@@ -75,8 +76,8 @@ end
 function M.cast_rays(player, wall_cells, fun, go_self)
 	for i=1 , CONST.PLAYER_RAYS do
 		local ray_angle = -M.ray_angle * (i-1) + M.half_fov
-		local dist, x, y, cell, hit_x, perp_dist = find_ray_intersept(player.position.x, player.position.y, ray_angle, player.angle + ray_angle, wall_cells)
-		if fun then fun(go_self, dist, x, y, cell, i, hit_x, perp_dist) end
+		local dist, x, y, cell, hit_x, perp_dist, texture_x = find_ray_intersept(player.position.x, player.position.y, ray_angle, player.angle + ray_angle, wall_cells)
+		if fun then fun(go_self, dist, x, y, cell, i, hit_x, perp_dist, texture_x) end
 	end
 	return wall_cells
 end
