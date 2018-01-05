@@ -19,11 +19,11 @@ end
 
 local rot = 3.1415/40
 local function rotate_left(self)
-	WORLD.player.angle = WORLD.player.angle + rot
+	WORLD.player.angle = WORLD.player.angle - rot
 end	
 
 local function rotate_right(self)
-	WORLD.player.angle = WORLD.player.angle - rot
+	WORLD.player.angle = WORLD.player.angle + rot
 end	
 
 function init(self)

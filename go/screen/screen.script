@@ -20,7 +20,7 @@ local function get_color(cell)
 	return WALLS[cell][1]
 end	
 
-local function ver_line(ray_id, draw_start, draw_end, wall, texture_x)
+local function ver_line(ray_id, draw_start, draw_end, wall, texture_x, hit_x)
 	local start_pixel = math.ceil(wall.width * texture_x)
 	
 	local y_width = (draw_end - draw_start)
@@ -29,21 +29,20 @@ local function ver_line(ray_id, draw_start, draw_end, wall, texture_x)
 			local y_pixel = math.ceil((y - draw_start) / y_width * 63) +1
 			local x_pixel = LUME.clamp(start_pixel + x, 0, 64)
 			local color = wall[(y_pixel-1) * wall.width + x_pixel]
+			if hit_x then color = color/2 end
 			SCREEN.set_node(x + (ray_id - 1) * CONST.STRIP_SIZE, y, color)
 		end
 	end	
 end	
 
 local function on_ray_intersept(self, dist, x, y, cell, ray, hit_x, perp_dist, texture_x)
-	local line_height = SCREEN.HEIGHT / (perp_dist) *0.88
+	local line_height = SCREEN.HEIGHT / (perp_dist * 1.126)
 	local half_line_height = LUME.round(line_height / 2)
 	local draw_start = - half_line_height + HALF_SCREEN_HEIGHT
 	local draw_end =  half_line_height + HALF_SCREEN_HEIGHT
 	if draw_start < 0 then draw_start = 0 end
 	if draw_end >= SCREEN.HEIGHT then draw_end = SCREEN.HEIGHT - 1 end
-	local color = get_color(cell)
-	if hit_x then color = color/2 end
-	ver_line(ray, draw_start, draw_end,  WALLS[cell], texture_x)
+	ver_line(ray, draw_start, draw_end,  WALLS[cell], texture_x, hit_x)
 end	
 
 function update(self, dt)
