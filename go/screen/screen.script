@@ -3,6 +3,9 @@ local WORLD = require "libs.world"
 local SCREEN = require "libs.screen"
 local CONST = require "libs.constants"
 local RAYS = require "libs.rays"
+local LUME = require "libs.lume"
+
+local HALF_SCREEN_HEIGHT = math.floor(SCREEN.HEIGHT / 2)
 
 function init(self)
 	self.resource_path = go.get("#model", "texture0")
@@ -27,9 +30,10 @@ local function ver_line(x, draw_start, draw_end, color)
 end	
 
 local function on_ray_intersept(self, dist, x, y, cell, ray, hit_x, perp_dist)
-	local line_height = math.floor(SCREEN.HEIGHT / perp_dist)
-	local draw_start = math.floor(-line_height / 2 + SCREEN.HEIGHT / 2)
-	local draw_end = math.floor(line_height / 2 + SCREEN.HEIGHT / 2)
+	local line_height = SCREEN.HEIGHT / perp_dist
+	local half_line_height = LUME.round(line_height / 2)
+	local draw_start = - half_line_height + HALF_SCREEN_HEIGHT
+	local draw_end =  half_line_height + HALF_SCREEN_HEIGHT
 	if draw_start < 0 then draw_start = 0 end
 	if draw_end >= SCREEN.HEIGHT then draw_end = SCREEN.HEIGHT - 1 end
 	local color = get_color(cell)
@@ -39,9 +43,11 @@ end
 
 function update(self, dt)
 	print("***************")
+	local time = os.clock()
 	SCREEN.clear()
 	RAYS.cast_rays(WORLD.player, WORLD.map.MAP, on_ray_intersept, self)
 	SCREEN.draw()
+	print("time:" .. os.clock() - time)
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
 end
