@@ -35,7 +35,7 @@ local function ver_line(ray_id, draw_start, draw_end, wall, texture_x)
 end	
 
 local function on_ray_intersept(self, dist, x, y, cell, ray, hit_x, perp_dist, texture_x)
-	local line_height = SCREEN.HEIGHT / perp_dist
+	local line_height = SCREEN.HEIGHT / (perp_dist) *0.88
 	local half_line_height = LUME.round(line_height / 2)
 	local draw_start = - half_line_height + HALF_SCREEN_HEIGHT
 	local draw_end =  half_line_height + HALF_SCREEN_HEIGHT
