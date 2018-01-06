@@ -42,6 +42,14 @@ key_trigger {
   input: KEY_E
   action: "rotate_right"
 }
+key_trigger {
+  input: KEY_0
+  action: "increase_fov"
+}
+key_trigger {
+  input: KEY_MINUS
+  action: "decrease_fov"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"

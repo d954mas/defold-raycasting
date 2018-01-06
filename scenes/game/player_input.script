@@ -26,15 +26,27 @@ local function rotate_right(self)
 	WORLD.player.angle = WORLD.player.angle + rot
 end	
 
+local ADD_FOV = 1 * math.pi / 180 
+local function increase_fov(self)
+	WORLD.player.camera:add_to_fov(ADD_FOV)
+	print("here")
+end	
+
+local function decrease_fov(self)
+	WORLD.player.camera:add_to_fov(-ADD_FOV)
+end	
+
 function init(self)
 	self.input_receiver = InputReceiver.new()
 	self.input_receiver.acquire()
-	self.input_receiver:add(hash("up"), up, true)
-	self.input_receiver:add(hash("down"), down, true)
-	self.input_receiver:add(hash("left"), left, true)
-	self.input_receiver:add(hash("right"), right, true)
-	self.input_receiver:add(hash("rotate_left"), rotate_left, true)
-	self.input_receiver:add(hash("rotate_right"), rotate_right, true)
+	self.input_receiver:add("up", up, true, true)
+	self.input_receiver:add("down", down, true, true)
+	self.input_receiver:add("left", left, true, true)
+	self.input_receiver:add("right", right, true, true)
+	self.input_receiver:add("rotate_left", rotate_left, true, true)
+	self.input_receiver:add("rotate_right", rotate_right, true, true)
+	self.input_receiver:add("increase_fov", increase_fov, true, true)
+	self.input_receiver:add("decrease_fov", decrease_fov, true, true)
 end
 
 function final(self)

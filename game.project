@@ -9,6 +9,8 @@ render = /render/my.renderc
 [input]
 game_binding = /game.input_bindingc
 use_accelerometer = 0
+repeat_interval = 0.1
+repeat_delay = 0.1
 
 [display]
 width = 640

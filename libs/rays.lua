@@ -65,7 +65,7 @@ local function find_ray_intersept(camera, ray_angle, cells)
 			end
 			catet_x = dist * angle_sin
 			catet_y = dist * angle_cos
-			texture_x = hit_x and (catet_y % 1) or (catet_x % 1) 
+			texture_x = hit_x and ((camera.position.y + catet_y) % 1) or ((camera.position.x + catet_x) % 1) 
 			perp_dist = dist *  math.cos(ray_angle)
 			return perp_dist, catet_x, catet_y,  map_x, map_y, side, texture_x
 		end	
