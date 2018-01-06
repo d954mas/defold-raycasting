@@ -21,21 +21,21 @@ local function get_color(cell)
 	return WALLS[cell][1]
 end	
 
-local function ver_line(ray_id, draw_start, draw_end, wall, texture_x, side)
+local function ver_line(camera, ray_id, draw_start, draw_end, wall, texture_x, side)
 	local start_pixel = math.ceil(wall.width * texture_x)
 	local y_width = (draw_end - draw_start)
-	for x = 1, CONST.STRIP_SIZE do
+	for x = 1, camera.strip_size do
 		for y = draw_start, draw_end do
 			local y_pixel = math.ceil((y - draw_start) / y_width * 63) +1
 			local x_pixel = LUME.clamp(start_pixel + x, 0, 64)
 			local color = wall[(y_pixel-1) * wall.width + x_pixel]
-			SCREEN.set_node(x + (ray_id - 1) * CONST.STRIP_SIZE, y, color)
+			SCREEN.set_node(x + (ray_id - 1) * camera.strip_size, y, color)
 		end
 	end	
 end	
 
 local function floor_casting(self, start_y, start_x, perp_dist, side, map_x, map_y)
-	if start_x~=1 then return end
+	--if start_x~=1 then return end
 	local floor_start_x, floor_start_y
 	if side == 0 then
 		floor_start_x = map_x
@@ -72,16 +72,17 @@ local function on_ray_intersept(self, dist, x, y, cell, ray, side, perp_dist, te
 	local draw_end =  half_line_height + HALF_SCREEN_HEIGHT
 	if draw_start < 0 then draw_start = 0 end
 	if draw_end >= SCREEN.HEIGHT then draw_end = SCREEN.HEIGHT - 1 end
-	ver_line(ray, draw_start, draw_end,  WALLS[cell], texture_x, side)
+	ver_line(WORLD.player.camera, ray, draw_start, draw_end,  WALLS[cell], texture_x, side)
 	floor_casting(self, draw_start - 1, ray, perp_dist, side, map_x, map_y)
 end	
 
 
 function update(self, dt)
 	--print("***************")
+	WORLD.update_camera()
 	local time = os.clock()
 	SCREEN.clear()
-	RAYS.cast_rays(WORLD.player, WORLD.map.MAP, on_ray_intersept, self)
+	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
 	SCREEN.draw()
 	--print("time:" .. os.clock() - time)
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}

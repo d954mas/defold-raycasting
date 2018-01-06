@@ -35,7 +35,7 @@ local function draw_ray(start_x, start_y, end_x, end_y)
 	end_point = vmath.vector3(end_x, end_y, 0), color = vmath.vector4(1, 0, 0, 1)}) 
 end
 
-local function on_ray_intersept(self, dist, x, y)
+local function on_ray_intersept(self, dist, x, y, cell, ray, side, perp_dist, texture_x, map_x, map_y)
 	local position = WORLD.player.position
 	local map_x = self.map_pos.x
 	local map_y = self.map_pos.y
@@ -47,5 +47,5 @@ function update(self)
 	self.player_pos.x = self.map_pos.x + WORLD.player.position.x * SCALE.x
 	self.player_pos.y = self.map_pos.y + WORLD.player.position.y * SCALE.y
 	gui.set_position(self.player_node, self.player_pos)
-	RAYS.cast_rays(WORLD.player, WORLD.map.MAP, on_ray_intersept, self)
+	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
 end	

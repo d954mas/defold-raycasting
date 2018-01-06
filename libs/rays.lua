@@ -8,9 +8,7 @@ local floor = math.floor
 local ceil = math.ceil
 local abs = math.abs
 
-M.half_fov = CONST.PLAYER_FOV/2
 M.twoPI = math.pi * 2;
-M.ray_angle = CONST.PLAYER_FOV/CONST.PLAYER_RAYS
 --count sx and step. same logic for x and y
 local function count_sx_and_step(dx, map_x, x, abs_dx)
 	local sx, step_x
@@ -24,9 +22,10 @@ local function count_sx_and_step(dx, map_x, x, abs_dx)
 	return sx, step_x
 end
 	
-local function find_ray_intersept(start_x, start_y, ray_angle, angle, cells)
-	local map_x = ceil(start_x)
-	local map_y = ceil(start_y)
+local function find_ray_intersept(camera, ray_angle, cells)
+	local angle = camera.angle + ray_angle
+	local map_x = ceil(camera.position.x)
+	local map_y = ceil(camera.position.y)
     
     local angle_sin=sin(angle)
     local angle_cos=cos(angle)
@@ -37,8 +36,8 @@ local function find_ray_intersept(start_x, start_y, ray_angle, angle, cells)
 	local abs_dx = abs(dx)
 	local abs_dy = abs(dy)
 	
-	local sx, step_x = count_sx_and_step(dx, map_x, start_x, abs_dx)
-	local sy, step_y = count_sx_and_step(dy, map_y, start_y, abs_dy)
+	local sx, step_x = count_sx_and_step(dx, map_x, camera.position.x, abs_dx)
+	local sy, step_y = count_sx_and_step(dy, map_y, camera.position.y, abs_dy)
       
     local move_x, move_y = 0 , 0
     local hit_x = true  -- 0 north 1 east 2 south 3 west
@@ -68,16 +67,17 @@ local function find_ray_intersept(start_x, start_y, ray_angle, angle, cells)
 			catet_y = dist * angle_cos
 			texture_x = hit_x and (catet_y % 1) or (catet_x % 1) 
 			perp_dist = dist *  math.cos(ray_angle)
-			return dist, start_x + catet_x , start_y + catet_y, cell, side, perp_dist, texture_x, map_x, map_y
+			return dist, camera.position.x + catet_x , camera.position.y + catet_y, cell, side, perp_dist, texture_x, map_x, map_y
 		end	
 	end	
 end
 
 
-function M.cast_rays(player, wall_cells, fun, go_self)
-	for i=1 , CONST.PLAYER_RAYS do
-		local ray_angle = M.ray_angle * (i-1) - M.half_fov
-		local dist, x, y, cell, side, perp_dist, texture_x, map_x, map_y = find_ray_intersept(player.position.x, player.position.y, ray_angle, player.angle + ray_angle, wall_cells)
+function M.cast_rays(camera, wall_cells, fun, go_self)
+	local half_fov = camera.fov / 2
+	for i=1 , camera.rays do
+		local ray_angle = camera.ray_angle * (i-1) - half_fov
+		local dist, x, y, cell, side, perp_dist, texture_x, map_x, map_y = find_ray_intersept(camera, ray_angle, wall_cells)
 		if fun then fun(go_self, dist, x, y, cell, i, side, perp_dist, texture_x, map_x, map_y) end
 	end
 	return wall_cells
