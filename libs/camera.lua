@@ -6,7 +6,7 @@ function M.new()
 	local self = setmetatable({}, M)
 	self.bounds = vmath.vector4(1, 1, CONST.CAMERA_WIDTH, CONST.CAMREA_HEIGHT)
 	self.strip_size = 1
-	self.rays = (self.bounds.z - self.bounds.x + 1) / self.strip_size
+	self.rays = M.get_width(self) / self.strip_size
 	self.fov = 80 * math.pi / 180 
 	self.ray_angle = self.fov / self.rays
 	
@@ -14,6 +14,14 @@ function M.new()
 	self.angle = 0
 	return self
 end
+
+function M:get_width()
+	return self.bounds.z - self.bounds.x + 1
+end	
+
+function M:get_height()
+	return self.bounds.w - self.bounds.y + 1
+end	
 
 return M
 

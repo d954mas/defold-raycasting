@@ -7,8 +7,6 @@ local LUME = require "libs.lume"
 local WALLS = require "assets.walls.walls"
 local MAP = WORLD.map
 
-local HALF_SCREEN_HEIGHT = math.floor(SCREEN.HEIGHT / 2)
-
 function init(self)
 	self.resource_path = go.get("#model", "texture0")
 	self.native_table = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, leds = SCREEN.NODES}
@@ -29,7 +27,7 @@ local function ver_line(camera, ray_id, draw_start, draw_end, wall, texture_x, s
 			local y_pixel = math.ceil((y - draw_start) / y_width * 63) +1
 			local x_pixel = LUME.clamp(start_pixel + x, 0, 64)
 			local color = wall[(y_pixel-1) * wall.width + x_pixel]
-			SCREEN.set_node(x + (ray_id - 1) * camera.strip_size, y, color)
+			SCREEN.set_node((camera.bounds.x - 1) + x + (ray_id - 1) * camera.strip_size, y, color)
 		end
 	end	
 end	
@@ -51,7 +49,6 @@ local function floor_casting(self, start_y, start_x, perp_dist, side, map_x, map
 		floor_start_y = map_y -- +
 	end	
 
-	print("************")
 	for y = start_y, 1, -1 do
 		local current_dist = SCREEN.HEIGHT / (SCREEN.HEIGHT - 2.0 * y)
 		local weight = current_dist / perp_dist
@@ -66,14 +63,15 @@ local function floor_casting(self, start_y, start_x, perp_dist, side, map_x, map
 end	
 
 local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, catet_y,  map_x, map_y, side, ray, texture_x)
-	local line_height = SCREEN.HEIGHT / (perp_dist * 1.126)
+	local center_camera = math.ceil(camera.bounds.y - 1 + camera:get_height()/2)
+	local line_height = camera:get_height() / (perp_dist)
 	local half_line_height = LUME.round(line_height / 2)
-	local draw_start = - half_line_height + HALF_SCREEN_HEIGHT
-	local draw_end =  half_line_height + HALF_SCREEN_HEIGHT
-	if draw_start < 0 then draw_start = 0 end
-	if draw_end >= SCREEN.HEIGHT then draw_end = SCREEN.HEIGHT - 1 end
+	local draw_start = - half_line_height + center_camera
+	local draw_end =  half_line_height + center_camera
+	if draw_start < camera.bounds.y then draw_start = camera.bounds.y end
+	if draw_end > camera.bounds.w then draw_end = camera.bounds.w end
 	ver_line(WORLD.player.camera, ray, draw_start, draw_end,  WALLS[wall_cells[map_y][map_x]], texture_x, side)
-	floor_casting(self, draw_start - 1, ray, perp_dist, side, map_x, map_y)
+--	floor_casting(self, draw_start - 1, ray, perp_dist, side, map_x, map_y)
 end	
 
 
