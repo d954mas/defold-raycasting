@@ -1,0 +1,25 @@
+[project]
+title = My project
+version = 0.1
+
+[bootstrap]
+main_collection = /scenes/main/main.collectionc
+render = /render/my.renderc
+
+[input]
+game_binding = /game.input_bindingc
+use_accelerometer = 0
+repeat_interval = 0.1
+repeat_delay = 0.1
+
+[display]
+width = 640
+height = 480
+display_profiles = /render/my.display_profilesc
+
+[physics]
+scale = 1.0
+
+[script]
+shared_state = 1
+
