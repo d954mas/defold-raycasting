@@ -35,12 +35,11 @@ local function draw_ray(start_x, start_y, end_x, end_y)
 	end_point = vmath.vector3(end_x, end_y, 0), color = vmath.vector4(1, 0, 0, 1)}) 
 end
 
-local function on_ray_intersept(self, dist, x, y, cell, ray, side, perp_dist, texture_x, map_x, map_y)
-	local position = WORLD.player.position
-	local map_x = self.map_pos.x
-	local map_y = self.map_pos.y
-	draw_ray(map_x + position.x * SCALE.x , map_y + position.y * SCALE.y,
-		map_x + x * SCALE.x, map_y + y * SCALE.y)
+local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, catet_y,  map_x, map_y, side, ray, texture_x)
+	local map_x, map_y = self.map_pos.x, self.map_pos.y
+	local end_x, end_y = camera.position.x + catet_x , camera.position.y + catet_y
+	draw_ray(map_x + camera.position.x * SCALE.x , map_y + camera.position.y * SCALE.y,
+		map_x + end_x * SCALE.x, map_y + end_y * SCALE.y)
 end	
 
 function update(self)
