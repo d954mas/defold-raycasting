@@ -32,7 +32,7 @@ local function ver_line(camera, ray_id, draw_start, draw_end, wall, texture_x, s
 	end	
 end	
 
-local function floor_casting(self, start_y, start_x, perp_dist, side, map_x, map_y)
+local function floor_casting(self, camera, start_y, start_x, perp_dist, side, map_x, map_y, floors, catet_x, catet_y)
 	--if start_x~=1 then return end
 	local floor_start_x, floor_start_y
 	if side == 0 then
@@ -49,15 +49,26 @@ local function floor_casting(self, start_y, start_x, perp_dist, side, map_x, map
 		floor_start_y = map_y -- +
 	end	
 
-	for y = start_y, 1, -1 do
-		local current_dist = SCREEN.HEIGHT / (SCREEN.HEIGHT - 2.0 * y)
-		local weight = current_dist / perp_dist
-		local floor_x = current_dist * start_x;
-		local floor_y = current_dist * start_y;
-		local floor_tex_x = math.ceil(floor_x * 64) % 64;
-		local floor_tex_y = math.ceil(floor_y * 64) % 64;
-		local id = (floor_tex_y) * 64 + floor_tex_x + 1
-		local color = 0x0000FF
+	--local distance_x = math.abs(camera.position.x - floor_start_x)
+	--local distance_y = math.abs(camera.position.y - floor_start_y)
+	local distance_x = catet_x
+	local distance_y = catet_y
+	local distance = vmath.vector3(distance_x, distance_y, 0)
+	local perp_scale = perp_dist/vmath.length(distance)
+	print(perp_scale)
+	distance = distance * perp_scale
+
+	local floor_height = start_y -  camera.bounds.y  + 1
+	for y = start_y -  camera.bounds.y + 1, 1, -1 do
+		local distance_scale = y/floor_height
+		local floor_x = camera.position.x + distance_x * distance_scale - 1
+		local floor_y = camera.position.y + distance_y * distance_scale - 1
+		local cell_x = math.ceil(floor_x)
+		local cell_y = math.ceil(floor_y)
+		local floor =  WALLS[floors[cell_y][cell_x]]
+		local texture_x = LUME.round((floor_x % 1)  * (floor.width - 1)) + 1
+		local texture_y = LUME.round((floor_y % 1)  * (floor.height - 1)) + 1
+		local color = floor[(texture_y - 1) * floor.width + texture_x]
 		SCREEN.set_node(start_x, y, color)
 	end
 end	
@@ -71,7 +82,7 @@ local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, ca
 	if draw_start < camera.bounds.y then draw_start = camera.bounds.y end
 	if draw_end > camera.bounds.w then draw_end = camera.bounds.w end
 	ver_line(WORLD.player.camera, ray, draw_start, draw_end,  WALLS[wall_cells[map_y][map_x]], texture_x, side)
---	floor_casting(self, draw_start - 1, ray, perp_dist, side, map_x, map_y)
+	floor_casting(self, camera, draw_start - 1, ray, perp_dist, side, map_x, map_y, MAP.FLOORS,catet_x, catet_y)
 end	
 
 
