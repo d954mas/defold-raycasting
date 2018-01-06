@@ -7,6 +7,8 @@ local LUME = require "libs.lume"
 local WALLS = require "assets.walls.walls"
 local MAP = WORLD.map
 
+local MATH_CEIL = math.ceil
+
 function init(self)
 	self.resource_path = go.get("#model", "texture0")
 	self.native_table = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, leds = SCREEN.NODES}
@@ -20,55 +22,33 @@ local function get_color(cell)
 end	
 
 local function ver_line(camera, ray_id, draw_start, draw_end, wall, texture_x, side)
-	local start_pixel = math.ceil(wall.width * texture_x)
+	local start_pixel = MATH_CEIL((wall.width-1) * texture_x) + 1
 	local y_width = (draw_end - draw_start)
-	for x = 1, camera.strip_size do
-		for y = draw_start, draw_end do
-			local y_pixel = math.ceil((y - draw_start) / y_width * 63) +1
-			local x_pixel = LUME.clamp(start_pixel + x, 0, 64)
-			local color = wall[(y_pixel-1) * wall.width + x_pixel]
-			SCREEN.set_node((camera.bounds.x - 1) + x + (ray_id - 1) * camera.strip_size, y, color)
-		end
-	end	
+	for y = draw_start, draw_end do
+		local y_pixel = MATH_CEIL((y - draw_start) / y_width * 63) +1
+		local x_pixel = start_pixel
+		local color = wall[(y_pixel-1) * wall.width + x_pixel]
+		SCREEN.set_node((camera.bounds.x - 1) + ray_id, y, color)
+	end
 end	
 
-local function floor_casting(self, camera, start_y, start_x, perp_dist, side, map_x, map_y, floors, catet_x, catet_y)
-	--if start_x~=1 then return end
-	local floor_start_x, floor_start_y
-	if side == 0 then
-		floor_start_x = map_x
-		floor_start_y = map_y + 1
-	elseif side == 1 then
-		floor_start_x = map_x + 1
-		floor_start_y = map_y -- -
-	elseif side == 2 then
-		floor_start_x = map_x
-		floor_start_y = map_y -- +
-	else
-		floor_start_x = map_x
-		floor_start_y = map_y -- +
-	end	
-
-	--local distance_x = math.abs(camera.position.x - floor_start_x)
-	--local distance_y = math.abs(camera.position.y - floor_start_y)
-	local distance_x = catet_x
-	local distance_y = catet_y
-	local distance = vmath.vector3(distance_x, distance_y, 0)
-	local perp_scale = perp_dist/vmath.length(distance)
-	print(perp_scale)
-	distance = distance * perp_scale
-
+local function floor_casting(self, camera, start_y, start_x, perp_dist, side, map_x, map_y, floors, catet_x, catet_y, ray)
+	local end_x = camera.position.x + catet_x
+	local end_y = camera.position.y + catet_y
 	local floor_height = start_y -  camera.bounds.y  + 1
+	local half_height = camera:get_height()/2
 	for y = start_y -  camera.bounds.y + 1, 1, -1 do
-		local distance_scale = y/floor_height
-		local floor_x = camera.position.x + distance_x * distance_scale - 1
-		local floor_y = camera.position.y + distance_y * distance_scale - 1
-		local cell_x = math.ceil(floor_x)
-		local cell_y = math.ceil(floor_y)
+		local current_dist =  half_height / (half_height - y)
+		local weight = current_dist / perp_dist
+		local floor_x = (weight * end_x + (1.0 - weight) * camera.position.x)
+		local floor_y = (weight * end_y + (1.0 - weight) * camera.position.y)
+		local cell_x = MATH_CEIL(floor_x)
+		local cell_y = MATH_CEIL(floor_y)
 		local floor =  WALLS[floors[cell_y][cell_x]]
-		local texture_x = LUME.round((floor_x % 1)  * (floor.width - 1)) + 1
-		local texture_y = LUME.round((floor_y % 1)  * (floor.height - 1)) + 1
-		local color = floor[(texture_y - 1) * floor.width + texture_x]
+		--local texture_x = LUME.round((floor_x % 1)  * (floor.width - 1)) + 1
+		--local texture_y = LUME.round((floor_y % 1)  * (floor.height - 1)) + 1
+		local color = floor[1]
+		--local color = floor[(texture_y - 1) * floor.width + texture_x]
 		SCREEN.set_node(start_x, y, color)
 	end
 end	

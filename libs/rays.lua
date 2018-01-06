@@ -74,12 +74,14 @@ end
 
 
 function M.cast_rays(camera, wall_cells, fun, go_self)
+	local time = os.clock()
 	local half_fov = camera.fov / 2
 	for i=1 , camera.rays do
 		local ray_angle = camera.ray_angle * (i-1) - half_fov
 		local perp_dist, catet_x, catet_y,  map_x, map_y, side, texture_x = find_ray_intersept(camera, ray_angle, wall_cells)
 		if fun then fun(go_self, camera, wall_cells, perp_dist, catet_x, catet_y,  map_x, map_y, side, i, texture_x) end
 	end
+	print("cast_rays:" .. os.clock() - time)
 end
 
 return M
