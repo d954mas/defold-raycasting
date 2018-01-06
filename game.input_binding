@@ -43,7 +43,7 @@ key_trigger {
   action: "rotate_right"
 }
 key_trigger {
-  input: KEY_0
+  input: KEY_EQUALS
   action: "increase_fov"
 }
 key_trigger {
