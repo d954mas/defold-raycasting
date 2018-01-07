@@ -38,8 +38,7 @@ local function find_ray_intersept(camera, ray_angle, cells)
 	
 	local sx, step_x = count_sx_and_step(dx, map_x, camera.position.x, abs_dx)
 	local sy, step_y = count_sx_and_step(dy, map_y, camera.position.y, abs_dy)
-      
-    local move_x, move_y = 0 , 0
+	
     local hit_x = true  -- 0 north 1 east 2 south 3 west
     while true do
     	if(sx < sy) then
@@ -67,7 +66,7 @@ local function find_ray_intersept(camera, ray_angle, cells)
 			catet_y = dist * angle_cos
 			texture_x = hit_x and ((camera.position.y + catet_y) % 1) or ((camera.position.x + catet_x) % 1) 
 			perp_dist = dist *  math.cos(ray_angle)
-			return perp_dist, catet_x, catet_y,  map_x, map_y, side, texture_x
+			return perp_dist, catet_x, catet_y,  map_x, map_y, texture_x
 		end	
 	end	
 end
@@ -79,6 +78,7 @@ function M.cast_rays(camera, wall_cells, fun, go_self)
 	local ray_angle = - half_fov
 	for i=1 , camera.rays do
 		local perp_dist, catet_x, catet_y,  map_x, map_y, texture_x = native_raycasting.cast_ray(camera.position.x, camera.position.y, camera.angle, ray_angle, wall_cells)
+		--perp_dist, catet_x, catet_y,  map_x, map_y, texture_x = find_ray_intersept(camera, ray_angle, wall_cells)
 		if fun then fun(go_self, camera, wall_cells, perp_dist, catet_x, catet_y,  map_x, map_y, side, i, texture_x) end
 		ray_angle = ray_angle + camera.ray_angle
 	end

@@ -12,28 +12,15 @@
 //заранее зенести cells в массив.Чтобы не дергать луа
 static int castRay(lua_State* L)
 {	
-	double startX = lua_tonumber(L, 1);
-	double startY = lua_tonumber(L, 2);
-	double cameraAngle = lua_tonumber(L, 3);
-	double rayAngle = lua_tonumber(L, 4);
-
+	double startX = lua_tonumber(L, 1), startY = lua_tonumber(L, 2);
+	double cameraAngle = lua_tonumber(L, 3), rayAngle = lua_tonumber(L, 4);
 	double angle = cameraAngle + rayAngle;
-	int mapX= (int) startX;
-	int mapY = (int) startY;
-
-	double angleSin = sin(angle);
-	double angleCos = cos(angle);
-
-	double dx = 1/angleSin;
-	double dy = 1/angleCos;
-
-	double absDx = fabs(dx);
-	double absDy = fabs(dy);
-
-	
-
-	double sx = 0;
-	int stepX = 0;
+	int mapX = ceil(startX), mapY = ceil(startY);
+	double angleSin = sin(angle), angleCos = cos(angle);
+	double dx = 1.0/angleSin, dy = 1.0/angleCos;
+	double absDx = fabs(dx), absDy = fabs(dy);
+	double sx, sy;
+	int stepX, stepY;
 	if (dx>0){
 		sx = (mapX - startX) * absDx;
 		stepX = 1;
@@ -41,9 +28,7 @@ static int castRay(lua_State* L)
 		sx = (1 + startX  - mapX) * absDx;
 		stepX = - 1;
 	}
-
-	double sy = 0;
-	int stepY = 0;
+	
 	if (dy>0){
 		sy = (mapY - startY) * absDy;
 		stepY = 1;
@@ -51,11 +36,7 @@ static int castRay(lua_State* L)
 		sy = (1 + startY  - mapY) * absDy;
 		stepY = - 1;
 	}
-
-	double moveX = 0;
-	double moveY = 0;
 	bool hitX = true;
-
 	while (true)
 	{
 		if(sx < sy){
@@ -74,30 +55,23 @@ static int castRay(lua_State* L)
 		lua_pop(L, 1);
 		lua_pop(L, 1);
 		if(cell > 0){
-			double dist;
-			double catetX;
-			double catetY;
-			double perpDist;
-			double textureX; 
-
+			double dist; 
 			if(hitX){
 				sx = sx - absDx; //remove last dx
 				dist = sx;
-				
 			}else{
 				sy = sy - absDy; //remove last dy
 				dist = sy;
 			}
-			
-			catetX = dist * angleSin;
-			catetY = dist * angleCos;
-			double n;
+			double catetX = dist * angleSin;
+			double catetY = dist * angleCos;
+			double n, textureX;
 			if(hitX){
 				textureX = modf(startY + catetY,&n);
 			}else{
 				textureX = modf(startX + catetX,&n);
 			}
-			perpDist = dist *  cos(rayAngle);
+			double perpDist = dist *  cos(rayAngle);
 
 			lua_pushnumber(L, perpDist);
 			lua_pushnumber(L, catetX);
