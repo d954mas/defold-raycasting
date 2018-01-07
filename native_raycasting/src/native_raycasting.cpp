@@ -33,7 +33,7 @@ static int castRay(lua_State* L)
 	
 
 	double sx = 0;
-	double stepX = 0;
+	int stepX = 0;
 	if (dx>0){
 		sx = (mapX - startX) * absDx;
 		stepX = 1;
@@ -43,7 +43,7 @@ static int castRay(lua_State* L)
 	}
 
 	double sy = 0;
-	double stepY = 0;
+	int stepY = 0;
 	if (dy>0){
 		sy = (mapY - startY) * absDy;
 		stepY = 1;
@@ -111,10 +111,42 @@ static int castRay(lua_State* L)
 	}
 }
 
+static int vertLine(lua_State* L){
+	int x = (int) lua_tonumber(L, 1);
+	int startY = (int) lua_tonumber(L, 2);
+	int endY = (int) lua_tonumber(L, 3);
+	int screenWidth = (int) lua_tonumber(L, 7);
+
+	lua_pushstring(L, "width");
+	lua_gettable(L, 4);  // get table[key]
+	int wallWidth = (int)lua_tonumber(L, -1);
+	lua_pop(L, 1);  // remove number from stack
+
+	double textureX = lua_tonumber(L, 5);
+	
+	int pixelX = (int)((wallWidth-1) * textureX) + 1;
+	double yWidth = endY - startY;
+	for (int y = startY; y <= endY; y++) {
+		int pixelY = (int)((y - startY) / yWidth * 63) +1;
+		int id = (pixelY - 1) * wallWidth + pixelX;
+		lua_pushnumber(L, id);
+		lua_gettable(L, 4);  // get table[key]
+		int color = (int)lua_tonumber(L, -1);
+		lua_pop(L, 1);  // remove number from stack
+		id = (y-1) * screenWidth + x;
+		lua_pushnumber(L, id);
+		lua_pushnumber(L, color);
+		lua_settable(L, 6);
+		
+	}
+	return 1;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
 	{"cast_ray", castRay},
+	{"vert_line", vertLine},
 	{0, 0}
 };
 

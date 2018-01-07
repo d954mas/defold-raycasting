@@ -61,20 +61,23 @@ local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, ca
 	local draw_end =  half_line_height + center_camera
 	if draw_start < camera.bounds.y then draw_start = camera.bounds.y end
 	if draw_end > camera.bounds.w then draw_end = camera.bounds.w end
-	ver_line(WORLD.player.camera, ray, draw_start, draw_end,  WALLS[wall_cells[map_y][map_x]], texture_x, side)
-	floor_casting(self, camera, draw_start - 1, ray, perp_dist, side, map_x, map_y, MAP.FLOORS,catet_x, catet_y)
+	local x = (camera.bounds.x - 1) + ray
+	native_raycasting.vert_line(x, draw_start, draw_end, WALLS[wall_cells[map_y][map_x]], texture_x, SCREEN.NODES, SCREEN.WIDTH)
+	--floor_casting(self, camera, draw_start - 1, ray, perp_dist, side, map_x, map_y, MAP.FLOORS,catet_x, catet_y)
 end	
 
 
 function update(self, dt)
 	--print("***************")
+	local time = os.clock()
 	WORLD.update_camera()
 	SCREEN.clear()
 	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
-	local time = os.clock()
 	SCREEN.draw()
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
+	print("time:" .. os.clock() - time)
+	
 end
 
 
