@@ -17,18 +17,17 @@ static int drawPixels(lua_State* L)
 	//printf("size:%s",size_ignored);
 	lua_getfield(L, 1, "width");
 	lua_getfield(L, 1, "height");;
-	int width = luaL_checknumber(L, -2);
-	int height = luaL_checknumber(L, -1);
-	lua_pop(L, 1);
-	lua_pop(L, 1); 
-	int size = width * height;
+	double width = lua_tonumber(L, -2);
+	double height = lua_tonumber(L, -1);
+	lua_pop(L, 2);
+	double size = width * height;
 	lua_pushstring(L,"stream");
 	lua_gettable(L, -3 );
 	lua_pushstring(L,"leds");
 	lua_gettable(L, -4 );
 	for(int i=1; i<= size;i++){
 		lua_rawgeti(L,-1,i);
-		int color = luaL_checknumber(L, -1);
+		int color = (int)lua_tonumber(L, -1);
 		lua_pop(L, 1);
 		int r = color >> 16;
 		int g = (color & 0x00FF00) >> 8;
@@ -44,51 +43,10 @@ static int drawPixels(lua_State* L)
 	return 1;
 }
 
-static int drawPixelsOld(lua_State* L)
-{	
-	lua_getfield(L, 1, "width");
-	lua_getfield(L, 1, "height");
-	int width = luaL_checknumber(L, -2);
-	int height = luaL_checknumber(L, -1);
-	lua_pop(L, 1);
-	lua_pop(L, 1); 
-	int size = width * height;
-	lua_pushstring(L,"stream");
-	lua_gettable(L, -2 );
-	lua_pushstring(L,"leds");
-	lua_gettable(L, -3 );
-	//printf("size:%s",size_ignored);
-	for(int i=1; i<= size;i++){
-		lua_rawgeti(L,-1,i);
-		int color = luaL_checknumber(L, -1);
-		//printf("i=%d color=%d \n",i,color);
-		lua_pop(L, 1);
-		int r = color >> 16;
-		int g = (color & 0x00FF00) >> 8;
-		int b= color & 0x0000ff;
-
-		int id = i * 3;
-		lua_pushnumber(L, id - 2);
-		lua_pushnumber(L, r);
-		lua_settable(L, -4);
-		lua_pushnumber(L, id - 1);
-		lua_pushnumber(L, g);
-		lua_settable(L, -4);
-		lua_pushnumber(L, id);
-		lua_pushnumber(L, b);
-		lua_settable(L, -4);
-		//printf("i:%s",i);
-	}
-	lua_pop(L,1);
-
-	return 1;
-}
-
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
 	{"draw_pixels", drawPixels},
-	{"draw_pixels_old", drawPixelsOld},
 	{0, 0}
 };
 
@@ -101,12 +59,12 @@ static void LuaInit(lua_State* L)
 	assert(top == lua_gettop(L));
 }
 
-dmExtension::Result AppInitializeMyExtension(dmExtension::AppParams* params)
+static dmExtension::Result AppInitializeMyExtension(dmExtension::AppParams* params)
 {
 	return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result InitializeMyExtension(dmExtension::Params* params)
+static dmExtension::Result InitializeMyExtension(dmExtension::Params* params)
 {
 	// Init Lua
 	LuaInit(params->m_L);
@@ -114,12 +72,12 @@ dmExtension::Result InitializeMyExtension(dmExtension::Params* params)
 	return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result AppFinalizeMyExtension(dmExtension::AppParams* params)
+static dmExtension::Result AppFinalizeMyExtension(dmExtension::AppParams* params)
 {
 	return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result FinalizeMyExtension(dmExtension::Params* params)
+static dmExtension::Result FinalizeMyExtension(dmExtension::Params* params)
 {
 	return dmExtension::RESULT_OK;
 }

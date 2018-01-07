@@ -45,10 +45,10 @@ local function floor_casting(self, camera, start_y, start_x, perp_dist, side, ma
 		local cell_x = MATH_CEIL(floor_x)
 		local cell_y = MATH_CEIL(floor_y)
 		local floor =  WALLS[floors[cell_y][cell_x]]
-		--local texture_x = LUME.round((floor_x % 1)  * (floor.width - 1)) + 1
-		--local texture_y = LUME.round((floor_y % 1)  * (floor.height - 1)) + 1
-		local color = floor[1]
-		--local color = floor[(texture_y - 1) * floor.width + texture_x]
+		local texture_x = LUME.round((floor_x % 1)  * (floor.width - 1)) + 1
+		local texture_y = LUME.round((floor_y % 1)  * (floor.height - 1)) + 1
+		--local color = floor[1]
+		local color = floor[(texture_y - 1) * floor.width + texture_x]
 		SCREEN.set_node(start_x, y, color)
 	end
 end	
@@ -69,11 +69,10 @@ end
 function update(self, dt)
 	--print("***************")
 	WORLD.update_camera()
-	local time = os.clock()
 	SCREEN.clear()
 	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
+	local time = os.clock()
 	SCREEN.draw()
-	--print("time:" .. os.clock() - time)
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
 end
