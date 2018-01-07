@@ -15,6 +15,7 @@ function init(self)
 	go.set_position(vmath.vector3(SCREEN.WIDTH/2, SCREEN.HEIGHT/2, 0))
 	local scale = vmath.vector3(50 * SCREEN.WIDTH, 50 * SCREEN.HEIGHT, 1)
 	go.set_scale(scale)
+	
 end
 
 local function get_color(cell)
@@ -62,7 +63,7 @@ local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, ca
 	if draw_start < camera.bounds.y then draw_start = camera.bounds.y end
 	if draw_end > camera.bounds.w then draw_end = camera.bounds.w end
 	local x = (camera.bounds.x - 1) + ray
-	native_raycasting.vert_line(x, draw_start, draw_end, WALLS[wall_cells[map_y][map_x]], texture_x, SCREEN.NODES, SCREEN.WIDTH)
+	native_raycasting.vert_line(x, draw_start, draw_end, WALLS[wall_cells[map_y][map_x]], texture_x)
 	--floor_casting(self, camera, draw_start - 1, ray, perp_dist, side, map_x, map_y, MAP.FLOORS,catet_x, catet_y)
 end	
 
@@ -73,7 +74,6 @@ function update(self, dt)
 	WORLD.update_camera()
 	SCREEN.clear()
 	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
-	SCREEN.draw()
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
 	print("time:" .. os.clock() - time)
