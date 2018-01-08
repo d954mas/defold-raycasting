@@ -89,6 +89,10 @@ static int castRay(lua_State* L)
 
 static int setPixel(int x, int y, int color){
 	int id = (y * BUFFER_WIDTH + x) * 3;
+	if(id > 480*640 *3 || id <0){
+		printf("bad id:%d", id);
+		return 1;
+	}
 	//printf("id:%d", id);
 	int r = color >> 16;
 	int g = (color & 0x00FF00) >> 8;
@@ -151,7 +155,7 @@ static int floorCasting(lua_State* L){
 	bool isFloor = startY >=endY;
 	int loopStartY = isFloor ? startY : endY;
 	int loopEndY = isFloor ? endY : startY;
-	for(int y = loopStartY; y >= loopEndY; y--){
+	for(int y = loopStartY; y > loopEndY; y--){
 		double currentDist;
 		if(isFloor){
 			currentDist =  (double)halfHeight / (halfHeight - y);

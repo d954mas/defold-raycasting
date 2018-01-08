@@ -10,6 +10,7 @@ local MAP = WORLD.map
 local MATH_CEIL = math.ceil
 
 function init(self)
+	
 	self.resource_path = go.get("#model", "texture0")
 	self.native_table = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, leds = SCREEN.NODES}
 	go.set_position(vmath.vector3(SCREEN.WIDTH/2, SCREEN.HEIGHT/2, 0))
@@ -55,10 +56,15 @@ local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, ca
 
 	local end_position_x = camera.position.x + catet_x
 	local end_position_y = camera.position.y + catet_y
-	native_raycasting.floor_casting(x, draw_start - 1, camera.bounds.y, camera.position.x, camera.position.y, camera.size.y,
-	end_position_x, end_position_y, perp_dist, WALLS,  MAP.FLOORS)
-	native_raycasting.floor_casting(x, draw_end + 1, camera.bounds.w-1, camera.position.x, camera.position.y, camera.size.y,
-	end_position_x, end_position_y, perp_dist, WALLS,  MAP.CEILS)
+	if draw_start ~= camera.bounds.y then
+		native_raycasting.floor_casting(x, draw_start - 1, camera.bounds.y, camera.position.x, camera.position.y, camera.size.y,
+			end_position_x, end_position_y, perp_dist, WALLS,  MAP.FLOORS)
+	end
+	if draw_end ~= camera.bounds.w - 1 then
+		native_raycasting.floor_casting(x, draw_end + 1, camera.bounds.w-1, camera.position.x, camera.position.y, camera.size.y,
+			 end_position_x, end_position_y, perp_dist, WALLS,  MAP.CEILS)
+	end
+	
 	--floor_casting(self, camera, draw_start - 1, ray, perp_dist, side, map_x, map_y, MAP.FLOORS,catet_x, catet_y)
 end	
 
@@ -66,6 +72,8 @@ end
 function update(self, dt)
 	--print("***************")
 	local time = os.clock()
+	WORLD.player.position.x = LUME.clamp(WORLD.player.position.x, 1.5, 23)
+	WORLD.player.position.y = LUME.clamp(WORLD.player.position.y, 1.5, 23)
 	WORLD.update_camera()
 	SCREEN.clear()
 	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)

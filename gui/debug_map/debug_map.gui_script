@@ -2,21 +2,28 @@ local WORLD = require "libs.world"
 local HASHES = require "libs.hashes"
 local RAYS = require "libs.rays"
 
-local EMPTY_COLOR = string.char(0x00) .. string.char(0x00) .. string.char(0x00)
-local BLOCK_COLOR = string.char(0xff) .. string.char(0xff) .. string.char(0xff)
+local EMPTY_COLOR = string.char(0x00) .. string.char(0x00) .. string.char(0x00) .. string.char(0xff)
+local BLOCK_COLOR = string.char(0xff) .. string.char(0xff) .. string.char(0xff) .. string.char(0xff)
+local TRANSPARENT_COLOR = string.char(0x00) .. string.char(0x00) .. string.char(0x00) .. string.char(0x00)
 local SCALE = vmath.vector3(5, 5, 1)
 local map_pos
 local player_pos
 local function init_map(self)
-	local map_width = WORLD.map.WIDTH
-	local map_height = WORLD.map.HEIGHT
+	local map_width = 32
+	local map_height = 32
 	local pixels = ""
+	self.start_x = map_width - WORLD.map.WIDTH 
+	self.start_y = map_height - WORLD.map.HEIGHT
 	for y = map_height, 1, -1 do
 		for x=1, map_width do
-			pixels = pixels .. (WORLD.map.MAP[y][x]>0 and BLOCK_COLOR or EMPTY_COLOR)
+			if x <= self.start_x or y <= self.start_y then
+				pixels = pixels .. TRANSPARENT_COLOR
+			else
+				pixels = pixels .. (WORLD.map.MAP[y-self.start_y][x-self.start_x]>0 and BLOCK_COLOR or EMPTY_COLOR)
+			end	
 		end
 	end
-	gui.new_texture("map", map_width, map_height, "rgb", pixels)
+	gui.new_texture("map", map_width, map_height, "rgba", pixels)
 	gui.set_texture(self.map_node, "map")
 	gui.set_scale(self.map_node, SCALE)
 	self.map_pos = gui.get_position(self.map_node)
@@ -43,8 +50,8 @@ local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, ca
 end	
 
 function update(self)
-	--self.player_pos.x = self.map_pos.x + WORLD.player.position.x * SCALE.x
-	--self.player_pos.y = self.map_pos.y + WORLD.player.position.y * SCALE.y
-	--gui.set_position(self.player_node, self.player_pos)
+	self.player_pos.x = self.map_pos.x + (self.start_x + WORLD.player.position.x) * SCALE.x
+	self.player_pos.y = self.map_pos.y + (self.start_y + WORLD.player.position.y) * SCALE.y
+	gui.set_position(self.player_node, self.player_pos)
 	--RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
 end	
