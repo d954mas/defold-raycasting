@@ -22,22 +22,11 @@ local function get_color(cell)
 	return WALLS[cell][1]
 end	
 
-local function ver_line(camera, ray_id, draw_start, draw_end, wall, texture_x, side)
-	local start_pixel = MATH_CEIL((wall.width-1) * texture_x) + 1
-	local y_width = (draw_end - draw_start)
-	for y = draw_start, draw_end do
-		local y_pixel = MATH_CEIL((y - draw_start) / y_width * 63) +1
-		local x_pixel = start_pixel
-		local color = wall[(y_pixel-1) * wall.width + x_pixel]
-		SCREEN.set_node((camera.bounds.x - 1) + ray_id, y, color)
-	end
-end	
-
 local function floor_casting(self, camera, start_y, start_x, perp_dist, side, map_x, map_y, floors, catet_x, catet_y, ray)
 	local end_x = camera.position.x + catet_x
 	local end_y = camera.position.y + catet_y
 	local floor_height = start_y -  camera.bounds.y  + 1
-	local half_height = camera:get_height()/2
+	local half_height = camera.size.y/2
 	for y = start_y -  camera.bounds.y + 1, 1, -1 do
 		local current_dist =  half_height / (half_height - y)
 		local weight = current_dist / perp_dist
@@ -50,20 +39,26 @@ local function floor_casting(self, camera, start_y, start_x, perp_dist, side, ma
 		local texture_y = LUME.round((floor_y % 1)  * (floor.height - 1)) + 1
 		--local color = floor[1]
 		local color = floor[(texture_y - 1) * floor.width + texture_x]
-		SCREEN.set_node(start_x, y, color)
+		native_raycasting.set_pixel(start_x, y, color)
 	end
 end	
 
 local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, catet_y,  map_x, map_y, side, ray, texture_x)
-	local center_camera = math.ceil(camera.bounds.y - 1 + camera:get_height()/2)
-	local line_height = camera:get_height() / (perp_dist)
+	local line_height = camera.size.y / (perp_dist)
 	local half_line_height = LUME.round(line_height / 2)
-	local draw_start = - half_line_height + center_camera
-	local draw_end =  half_line_height + center_camera
+	local draw_start = - half_line_height + camera.center.y
+	local draw_end =  half_line_height + camera.center.y
 	if draw_start < camera.bounds.y then draw_start = camera.bounds.y end
-	if draw_end > camera.bounds.w then draw_end = camera.bounds.w end
-	local x = (camera.bounds.x - 1) + ray
+	if draw_end > camera.bounds.w - 1 then draw_end = camera.bounds.w - 1 end
+	local x = camera.bounds.x + ray - 1
 	native_raycasting.vert_line(x, draw_start, draw_end, WALLS[wall_cells[map_y][map_x]], texture_x)
+
+	local end_position_x = camera.position.x + catet_x
+	local end_position_y = camera.position.y + catet_y
+	native_raycasting.floor_casting(x, draw_start - 1, camera.bounds.y, camera.position.x, camera.position.y, camera.size.y,
+	end_position_x, end_position_y, perp_dist, WALLS,  MAP.FLOORS)
+	native_raycasting.floor_casting(x, draw_end + 1, camera.bounds.w-1, camera.position.x, camera.position.y, camera.size.y,
+	end_position_x, end_position_y, perp_dist, WALLS,  MAP.CEILS)
 	--floor_casting(self, camera, draw_start - 1, ray, perp_dist, side, map_x, map_y, MAP.FLOORS,catet_x, catet_y)
 end	
 

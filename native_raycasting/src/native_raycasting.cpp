@@ -99,11 +99,19 @@ static int setPixel(int x, int y, int color){
 	return 1;
 }
 
+static int setPixelLua(lua_State* L){
+	int x = (int) lua_tonumber(L, 1);
+	int y = (int) lua_tonumber(L, 2);
+	int color = (int) lua_tonumber(L, 3);
+	setPixel(x, y, color);
+	return 0;
+}
+
 static int vertLine(lua_State* L){
 	int x = (int) lua_tonumber(L, 1);
 	int startY = (int) lua_tonumber(L, 2);
 	int endY = (int) lua_tonumber(L, 3);
-
+	
 	lua_pushstring(L, "width");
 	lua_gettable(L, 4);  // get table[key]
 	int wallWidth = (int)lua_tonumber(L, -1);
@@ -120,9 +128,58 @@ static int vertLine(lua_State* L){
 		lua_gettable(L, 4);  // get table[key]
 		int color = (int)lua_tonumber(L, -1);
 		lua_pop(L, 1);  // remove number from stack
-		setPixel(x - 1, y - 1, color);
+		setPixel(x, y, color);
 	}
 	return 1;
+}
+
+static int floorCasting(lua_State* L){
+	int startX = (int) lua_tonumber(L, 1);
+	int startY = (int) lua_tonumber(L, 2);
+	int endY = (int) lua_tonumber(L, 3);
+
+	double cameraX = lua_tonumber(L, 4);
+	double cameraY = lua_tonumber(L, 5);
+	double cameraHeight = lua_tonumber(L, 6);
+
+	double endPositionX = lua_tonumber(L, 7);
+	double endPositionY = lua_tonumber(L, 8);
+
+	double perpDist = lua_tonumber(L, 9);
+
+	int halfHeight = cameraHeight/2;
+	bool isFloor = startY >=endY;
+	int loopStartY = isFloor ? startY : endY;
+	int loopEndY = isFloor ? endY : startY;
+	for(int y = loopStartY; y >= loopEndY; y--){
+		double currentDist;
+		if(isFloor){
+			currentDist =  (double)halfHeight / (halfHeight - y);
+		}else{
+			currentDist =  (double)halfHeight / (y - halfHeight);
+		}	
+		double weight = currentDist / perpDist;
+		double floorX = (weight * endPositionX + (1.0 - weight) * cameraX);
+		double floorY = (weight * endPositionY + (1.0 - weight) * cameraY);
+		int cellX = ceil(floorX);
+		int cellY = ceil(floorY);
+		
+		lua_rawgeti(L,-1,cellY);
+		lua_rawgeti(L,-1,cellX);
+		int floorId = (int)lua_tonumber(L, -1);
+		lua_pop(L, 2);
+
+		double n;
+		int textureX = round(modf(floorX,&n) * 63) + 1;
+		int textureY = round(modf(floorY,&n) * 63) + 1;
+		int id = (textureY - 1) * 64 + textureX;
+		lua_rawgeti(L,-2, floorId);
+		lua_rawgeti(L,-1, id);
+		int color = (int)lua_tonumber(L, -1);
+		lua_pop(L, 2);
+		setPixel(startX, y, color);
+	}	
+	return 0;
 }
 
 static int initBuffer(lua_State* L){
@@ -152,6 +209,8 @@ static const luaL_reg Module_methods[] =
 	{"clear_buffer", clearBuffer},
 	{"cast_ray", castRay},
 	{"vert_line", vertLine},
+	{"floor_casting", floorCasting},
+	{"set_pixel", setPixelLua},
 	{0, 0}
 };
 
