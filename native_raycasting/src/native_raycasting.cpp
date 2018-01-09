@@ -223,8 +223,10 @@ static int initBuffer(lua_State* L){
 	BUFFER_SIZE = BUFFER_WIDTH * BUFFER_HEIGHT;
 	dmScript::LuaHBuffer* buffer = dmScript::CheckBuffer(L, 3);
 	uint32_t size_ignored = 0;
+	uint32_t components = 0;
+	uint32_t stride = 0;
 	dmBuffer::HBuffer hBuffer = buffer->m_Buffer;
-	dmBuffer::Result r = dmBuffer::GetStream(hBuffer, dmHashString64("rgb"), (void**)&STREAM, &size_ignored);
+	dmBuffer::Result r = dmBuffer::GetStream(hBuffer, dmHashString64("rgb"), (void**)&STREAM, &size_ignored, &components, &stride);
 	return 1;
 }
 

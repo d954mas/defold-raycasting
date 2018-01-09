@@ -13,7 +13,7 @@ static int drawPixels(lua_State* L)
 	uint8_t* stream = 0x0;
 	uint32_t size_ignored = 0;
 	dmBuffer::HBuffer hBuffer = buffer->m_Buffer;
-	dmBuffer::Result r = dmBuffer::GetStream(hBuffer, dmHashString64("rgb"), (void**)&stream, &size_ignored);
+	dmBuffer::Result r = dmBuffer::GetStream(hBuffer, dmHashString64("rgb"), (void**)&stream, &size_ignored, NULL , NULL);
 	//printf("size:%s",size_ignored);
 	lua_getfield(L, 1, "width");
 	lua_getfield(L, 1, "height");;
