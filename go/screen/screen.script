@@ -16,6 +16,8 @@ function init(self)
 	local scale = vmath.vector3(50 * SCREEN.WIDTH, 50 * SCREEN.HEIGHT, 1)
 	go.set_scale(scale)
 	native_raycasting.init_camera(WORLD.player.camera.size.x, WORLD.player.camera.size.y)
+	native_raycasting.set_map(WORLD.map)
+	native_raycasting.init_wall_textures(WALLS)
 end
 
 local function get_color(cell)
@@ -51,20 +53,20 @@ local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, ca
 	if draw_start < camera.bounds.y then draw_start = camera.bounds.y end
 	if draw_end > camera.bounds.w - 1 then draw_end = camera.bounds.w - 1 end
 	local x = camera.bounds.x + ray - 1
-	native_raycasting.vert_line(x, draw_start, draw_end, WALLS[wall_cells[map_y][map_x]], texture_x)
+	-- wall_cells[map_x, map_y]
+	native_raycasting.vert_line(x, draw_start, draw_end,wall_cells[map_y][map_x], texture_x)
 
 	local end_position_x = camera.position.x + catet_x
 	local end_position_y = camera.position.y + catet_y
 	if draw_start ~= camera.bounds.y then
 		native_raycasting.floor_casting(x, draw_start - 1, camera.bounds.y, camera.position.x, camera.position.y, camera.size.y,
-			end_position_x, end_position_y, perp_dist, WALLS,  MAP.FLOORS)
+			end_position_x, end_position_y, perp_dist)
 	end
 	if draw_end ~= camera.bounds.w - 1 then
 		native_raycasting.floor_casting(x, draw_end + 1, camera.bounds.w-1, camera.position.x, camera.position.y, camera.size.y,
-			 end_position_x, end_position_y, perp_dist, WALLS,  MAP.CEILS)
+			 end_position_x, end_position_y, perp_dist)
 	end
 	
-	--floor_casting(self, camera, draw_start - 1, ray, perp_dist, side, map_x, map_y, MAP.FLOORS,catet_x, catet_y)
 end	
 
 

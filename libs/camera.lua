@@ -10,7 +10,7 @@ function M.new()
 	self.bounds = vmath.vector4(0, 0, CONST.CAMERA_WIDTH, CONST.CAMREA_HEIGHT)
 	self.size = vmath.vector3(self.bounds.z - self.bounds.x, self.bounds.w - self.bounds.y, 0)
 	self.center = vmath.vector3(self.bounds.x + self.size.x/2, self.bounds.y + self.size.y/2,0)
-	self.rays = self.size.x
+	self.rays = self.size.x;
 	self.fov = 80 * math.pi / 180 
 	self.ray_angle = self.fov / self.rays
 	self.angle = 0

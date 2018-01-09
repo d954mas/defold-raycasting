@@ -7,9 +7,25 @@
 // include the Defold SDK
 #include <dmsdk/sdk.h>
 #include <math.h>
+#include <stdlib.h>
+
+struct Texture {
+	int width;
+	int height;
+	int **pixels;
+};
+
+struct Map {
+	int width;
+	int height;
+	int **walls;
+	int **floors;
+	int **ceils;
+} map;
 
 static int BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_SIZE;
 static uint8_t* STREAM = 0x0;
+static struct Texture *wallTextures;
 
 //start_x, start_y, angle, ray_angle, cells
 //заранее зенести cells в массив.Чтобы не дергать луа
@@ -19,25 +35,25 @@ static int castRay(lua_State* L)
 	double startX = lua_tonumber(L, 1), startY = lua_tonumber(L, 2);
 	double cameraAngle = lua_tonumber(L, 3), rayAngle = lua_tonumber(L, 4);
 	double angle = cameraAngle + rayAngle;
-	int mapX = (int)ceil(startX), mapY = (int)ceil(startY);
+	int mapX = (int)startX, mapY = (int)startY;
 	double angleSin = sin(angle), angleCos = cos(angle);
 	double dx = 1.0/angleSin, dy = 1.0/angleCos;
 	double absDx = fabs(dx), absDy = fabs(dy);
 	double sx, sy;
 	int stepX, stepY;
 	if (dx>0){
-		sx = (mapX - startX) * absDx;
+		sx = (mapX - startX + 1) * absDx;
 		stepX = 1;
 	}else{
-		sx = (1 + startX  - mapX) * absDx;
+		sx = (startX  - mapX) * absDx;
 		stepX = - 1;
 	}
 	
 	if (dy>0){
-		sy = (mapY - startY) * absDy;
+		sy = (mapY - startY + 1) * absDy;
 		stepY = 1;
 	}else{
-		sy = (1 + startY  - mapY) * absDy;
+		sy = (startY  - mapY) * absDy;
 		stepY = - 1;
 	}
 	bool hitX = true;
@@ -53,12 +69,7 @@ static int castRay(lua_State* L)
 			hitX = false;
 		}
 
-		lua_rawgeti(L,-1,mapY);
-		lua_rawgeti(L,-1,mapX);
-		int cell = (int)lua_tonumber(L, -1);
-		lua_pop(L, 1);
-		lua_pop(L, 1);
-		if(cell > 0){
+		if(map.walls[mapY][mapX] > 0){
 			double dist; 
 			if(hitX){
 				sx = sx - absDx; //remove last dx
@@ -76,7 +87,6 @@ static int castRay(lua_State* L)
 				textureX = modf(startX + catetX,&n);
 			}
 			double perpDist = dist *  cos(rayAngle);
-
 			lua_pushnumber(L, perpDist);
 			lua_pushnumber(L, catetX);
 			lua_pushnumber(L, catetY);
@@ -116,23 +126,14 @@ static int vertLine(lua_State* L){
 	int x = (int) lua_tonumber(L, 1);
 	int startY = (int) lua_tonumber(L, 2);
 	int endY = (int) lua_tonumber(L, 3);
-	
-	lua_pushstring(L, "width");
-	lua_gettable(L, 4);  // get table[key]
-	int wallWidth = (int)lua_tonumber(L, -1);
-	lua_pop(L, 1);  // remove number from stack
-
+	int textureId = (int) lua_tonumber(L, 4);
+	Texture wall = wallTextures[textureId];
 	double textureX = lua_tonumber(L, 5);
-	
-	int pixelX = (int)((wallWidth-1) * textureX) + 1;
+	int pixelX = (int)((wall.width-1) * textureX);
 	double yWidth = endY - startY;
 	for (int y = startY; y <= endY; y++) {
-		int pixelY = (int)((y - startY) / yWidth * 63) +1;
-		int id = (pixelY - 1) * wallWidth + pixelX;
-		lua_pushnumber(L, id);
-		lua_gettable(L, 4);  // get table[key]
-		int color = (int)lua_tonumber(L, -1);
-		lua_pop(L, 1);  // remove number from stack
+		int pixelY = (int)((y - startY) / yWidth * 63);
+		int color = wall.pixels[pixelY][pixelX];
 		setPixel(x, y, color);
 	}
 	return 1;
@@ -158,35 +159,31 @@ static int floorCasting(lua_State* L){
 	int loopEndY = isFloor ? endY : startY;
 	for(int y = loopStartY; y > loopEndY; y--){
 		double currentDist;
+		int **floors;
 		if(isFloor){
 			currentDist =  PRE_CALC_HEIGHT_DISTANCE[halfHeight - y];
+			floors = map.floors; 
 		}else{
 			currentDist =   PRE_CALC_HEIGHT_DISTANCE[y - halfHeight];
+			floors = map.ceils; 
 		}	
 		double weight = currentDist / perpDist;
 		double floorX = (weight * endPositionX + (1.0 - weight) * cameraX);
 		double floorY = (weight * endPositionY + (1.0 - weight) * cameraY);
-		int cellX = ceil(floorX);
-		int cellY = ceil(floorY);
-		lua_rawgeti(L,-1,cellY);
-		lua_rawgeti(L,-1,cellX);
-		int floorId = (int)lua_tonumber(L, -1);
-		lua_pop(L, 2);
+		int cellX = (int)(floorX);
+		int cellY = (int)(floorY);
+		int floorId = floors[cellY][cellX];
 		double n;
-		int textureX = round(modf(floorX,&n) * 63) + 1;
-		int textureY = round(modf(floorY,&n) * 63) + 1;
-		int id = (textureY - 1) * 64 + textureX;
-		lua_rawgeti(L,-2, floorId);
-		lua_rawgeti(L,-1, id);
-		int color = (int)lua_tonumber(L, -1);
-		lua_pop(L, 2);
-		
+		int textureX = round(modf(floorX,&n) * 63);
+		int textureY = round(modf(floorY,&n) * 63);
+		Texture floorTexture = wallTextures[floorId-1];
+		int color = floorTexture.pixels[textureY][textureX];
 		setPixel(startX, y, color);
 	}	
 	return 0;
 }
 
-static int ** createTwoArrayInt(int height, int width){
+static int ** createTwoArrayInt(int width, int height){
 	int **array = (int**)malloc(height * sizeof(int*));
 	for (int i = 0; i<height; i++) 
 	{
@@ -214,6 +211,78 @@ static int initCamera(lua_State* L){
 	for(int i = 0;  i < size; i++){
 		PRE_CALC_HEIGHT_DISTANCE[i] =  halfHeight / i;
 	}
+	return 0;
+}
+
+static Texture getTextureFromStack(lua_State* L){
+	struct Texture texture;
+	lua_getfield(L, -1, "width");
+	lua_getfield(L, -2, "height");
+	texture.width = (int)lua_tonumber(L, -2);
+	texture.height = (int)lua_tonumber(L, -1);
+	lua_pop(L, 2);
+	//printf("Texture width:%d height:%d\n", texture.width, texture.height);
+	texture.pixels = createTwoArrayInt(texture.width, texture.height);
+	for(int y = 0; y < texture.height; y++){
+		for(int x = 0; x < texture.width; x++){
+			int id = y * texture.width + x + 1;
+			lua_rawgeti(L,-1,id);
+			int cell = (int)lua_tonumber(L, -1);
+			lua_pop(L, 1);
+			texture.pixels[y][x] = cell;
+		}
+	}
+	return texture;
+}
+
+static int initWallTextures(lua_State* L){
+	int n = luaL_getn(L, 1);  // get size of table
+	free(wallTextures);
+	wallTextures = (Texture *)malloc(sizeof(Texture) * n);
+	for(int i = 0;  i < n; i++){
+		lua_rawgeti(L, -1, i+1);
+		wallTextures[i] = getTextureFromStack(L);
+		lua_pop(L, 1);
+	}
+	return 0;
+}
+
+static int ** parseMap(lua_State* L, int width, int height){
+	int **map = createTwoArrayInt(width, height);
+	for(int y = 0; y < height; y++){
+		for(int x = 0; x < width; x++){
+			lua_rawgeti(L,-1,y + 1);
+			lua_rawgeti(L,-1,x + 1);
+			int cell = (int)lua_tonumber(L, -1);
+			lua_pop(L, 2);
+			map[y][x] = cell;
+		}
+	}
+	return map;
+}
+
+static int setMap(lua_State* L){
+	lua_getfield(L, 1, "WIDTH");
+	lua_getfield(L, 1, "HEIGHT");
+	int width = lua_tonumber(L, -2);
+	int height = lua_tonumber(L, -1);
+	lua_pop(L, 2);
+	
+	clearArrayInt(map.walls, map.height);
+	clearArrayInt(map.floors, map.height);
+	clearArrayInt(map.ceils, map.height);
+	map.width = width;
+	map.height = height;
+	lua_getfield(L, 1, "MAP");
+	map.walls = parseMap(L, width, height);
+	lua_pop(L, 1);
+	lua_getfield(L, 1, "FLOORS");
+	map.floors = parseMap(L, width, height);
+	lua_pop(L, 1);
+	lua_getfield(L, 1, "CEILS");
+	map.ceils = parseMap(L, width, height);
+	lua_pop(L, 1);
+	printf("here3\n");
 	return 0;
 }
 
@@ -245,6 +314,8 @@ static const luaL_reg Module_methods[] =
 	{"init_buffer", initBuffer},
 	{"clear_buffer", clearBuffer},
 	{"init_camera", initCamera},
+	{"init_wall_textures",initWallTextures},
+	{"set_map", setMap},
 	{"cast_ray", castRay},
 	{"vert_line", vertLine},
 	{"floor_casting", floorCasting},
