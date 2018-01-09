@@ -186,6 +186,24 @@ static int floorCasting(lua_State* L){
 	return 0;
 }
 
+static int ** createTwoArrayInt(int height, int width){
+	int **array = (int**)malloc(height * sizeof(int*));
+	for (int i = 0; i<height; i++) 
+	{
+		array[i] = (int*)malloc(sizeof(int) * width);
+	}
+	return array;
+}
+
+static int clearArrayInt(int **array, int height){
+	for (int i = 0; i < height; i++)
+	{
+		free(array[i]);
+	}
+	free(array);
+	return 0;
+}
+
 static int initCamera(lua_State* L){
 	int width = (int) lua_tonumber(L, 1);
 	int height = (int) lua_tonumber(L, 2);
