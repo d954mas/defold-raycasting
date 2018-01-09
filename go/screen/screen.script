@@ -10,13 +10,12 @@ local MAP = WORLD.map
 local MATH_CEIL = math.ceil
 
 function init(self)
-	
 	self.resource_path = go.get("#model", "texture0")
 	self.native_table = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, leds = SCREEN.NODES}
 	go.set_position(vmath.vector3(SCREEN.WIDTH/2, SCREEN.HEIGHT/2, 0))
 	local scale = vmath.vector3(50 * SCREEN.WIDTH, 50 * SCREEN.HEIGHT, 1)
 	go.set_scale(scale)
-	
+	native_raycasting.init_camera(WORLD.player.camera.size.x, WORLD.player.camera.size.y)
 end
 
 local function get_color(cell)

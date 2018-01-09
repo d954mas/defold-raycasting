@@ -13,6 +13,7 @@ static uint8_t* STREAM = 0x0;
 
 //start_x, start_y, angle, ray_angle, cells
 //заранее зенести cells в массив.Чтобы не дергать луа
+double *PRE_CALC_HEIGHT_DISTANCE;
 static int castRay(lua_State* L)
 {	
 	double startX = lua_tonumber(L, 1), startY = lua_tonumber(L, 2);
@@ -158,21 +159,19 @@ static int floorCasting(lua_State* L){
 	for(int y = loopStartY; y > loopEndY; y--){
 		double currentDist;
 		if(isFloor){
-			currentDist =  (double)halfHeight / (halfHeight - y);
+			currentDist =  PRE_CALC_HEIGHT_DISTANCE[halfHeight - y];
 		}else{
-			currentDist =  (double)halfHeight / (y - halfHeight);
+			currentDist =   PRE_CALC_HEIGHT_DISTANCE[y - halfHeight];
 		}	
 		double weight = currentDist / perpDist;
 		double floorX = (weight * endPositionX + (1.0 - weight) * cameraX);
 		double floorY = (weight * endPositionY + (1.0 - weight) * cameraY);
 		int cellX = ceil(floorX);
 		int cellY = ceil(floorY);
-		
 		lua_rawgeti(L,-1,cellY);
 		lua_rawgeti(L,-1,cellX);
 		int floorId = (int)lua_tonumber(L, -1);
 		lua_pop(L, 2);
-
 		double n;
 		int textureX = round(modf(floorX,&n) * 63) + 1;
 		int textureY = round(modf(floorY,&n) * 63) + 1;
@@ -181,8 +180,22 @@ static int floorCasting(lua_State* L){
 		lua_rawgeti(L,-1, id);
 		int color = (int)lua_tonumber(L, -1);
 		lua_pop(L, 2);
+		
 		setPixel(startX, y, color);
 	}	
+	return 0;
+}
+
+static int initCamera(lua_State* L){
+	int width = (int) lua_tonumber(L, 1);
+	int height = (int) lua_tonumber(L, 2);
+	free(PRE_CALC_HEIGHT_DISTANCE);
+	double halfHeight = height/2.0;
+	int size = ceil(halfHeight);
+	PRE_CALC_HEIGHT_DISTANCE = (double *)malloc(sizeof(double) * size);
+	for(int i = 0;  i < size; i++){
+		PRE_CALC_HEIGHT_DISTANCE[i] =  halfHeight / i;
+	}
 	return 0;
 }
 
@@ -211,6 +224,7 @@ static const luaL_reg Module_methods[] =
 {	
 	{"init_buffer", initBuffer},
 	{"clear_buffer", clearBuffer},
+	{"init_camera", initCamera},
 	{"cast_ray", castRay},
 	{"vert_line", vertLine},
 	{"floor_casting", floorCasting},
