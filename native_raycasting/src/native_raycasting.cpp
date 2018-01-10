@@ -9,6 +9,12 @@
 #include <math.h>
 #include <stdlib.h>
 
+struct Camera {
+	int x;
+	int y;
+	int width;
+	int height;
+} camera;
 struct Texture {
 	int width;
 	int height;
@@ -33,92 +39,150 @@ static int BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_SIZE;
 static uint8_t* STREAM = 0x0;
 static struct Texture *wallTextures;
 
-//start_x, start_y, angle, ray_angle, cells
-//заранее зенести cells в массив.Чтобы не дергать луа
-double *PRE_CALC_HEIGHT_DISTANCE;
-static int castRay(lua_State* L)
-{	
-	double startX = lua_tonumber(L, 1), startY = lua_tonumber(L, 2);
-	double cameraAngle = lua_tonumber(L, 3), rayAngle = lua_tonumber(L, 4);
-	double angle = cameraAngle + rayAngle;
-	int mapX = (int)startX, mapY = (int)startY;
-	double angleSin = sin(angle), angleCos = cos(angle);
-	double dx = 1.0/angleSin, dy = 1.0/angleCos;
-	double absDx = fabs(dx), absDy = fabs(dy);
-	double sx, sy;
-	int stepX, stepY;
-	if (dx>0){
-		sx = (mapX - startX + 1) * absDx;
-		stepX = 1;
-	}else{
-		sx = (startX  - mapX) * absDx;
-		stepX = - 1;
-	}
-	
-	if (dy>0){
-		sy = (mapY - startY + 1) * absDy;
-		stepY = 1;
-	}else{
-		sy = (startY  - mapY) * absDy;
-		stepY = - 1;
-	}
-	bool hitX = true;
-	while (true)
-	{
-		if(sx < sy){
-			mapX = mapX + stepX;
-			sx = sx + absDx;
-			hitX = true;
-		}else{
-			mapY = mapY + stepY;
-			sy = sy + absDy;
-			hitX = false;
-		}
-
-		if(map.walls[mapY][mapX] > 0){
-			double dist; 
-			if(hitX){
-				sx = sx - absDx; //remove last dx
-				dist = sx;
-			}else{
-				sy = sy - absDy; //remove last dy
-				dist = sy;
-			}
-			double catetX = dist * angleSin;
-			double catetY = dist * angleCos;
-			double n, textureX;
-			if(hitX){
-				textureX = modf(startY + catetY,&n);
-			}else{
-				textureX = modf(startX + catetX,&n);
-			}
-			double perpDist = dist *  cos(rayAngle);
-			lua_pushnumber(L, perpDist);
-			lua_pushnumber(L, catetX);
-			lua_pushnumber(L, catetY);
-			lua_pushnumber(L, mapX);
-			lua_pushnumber(L, mapY);
-			lua_pushnumber(L, textureX);
-			return 6;
-		}
-	}
-}
-
 static int setPixel(int x, int y, Color *color){
 	int id = (y * BUFFER_WIDTH + x) * 3;
 	//if(id > 480*640 *3 || id <0){
 		//printf("bad id:%d", id);
 		//return 1;
-	//}
-	//printf("id:%d", id);
-//	int r = color >> 16;
-	//int g = (color & 0x00FF00) >> 8;
-	//int b= color & 0x0000ff;
-	STREAM[id] = color->r;
-	STREAM[id + 1] = color->g;
-	STREAM[id + 2] = color->b;
-	return 1;
+		//}
+		//printf("id:%d", id);
+		//	int r = color >> 16;
+		//int g = (color & 0x00FF00) >> 8;
+		//int b= color & 0x0000ff;
+		STREAM[id] = color->r;
+		STREAM[id + 1] = color->g;
+		STREAM[id + 2] = color->b;
+		return 1;
+	}
+
+static int castRay(double startX, double startY, double cameraAngle, double rayAngle
+	,double *perpDist, double *catetX,  double *catetY, int *mapXResult, int *mapYResult, double *textureX){
+		double angle = cameraAngle + rayAngle;
+		int mapX = (int)startX, mapY = (int)startY;
+		double angleSin = sin(angle), angleCos = cos(angle);
+		double dx = 1.0/angleSin, dy = 1.0/angleCos;
+		double absDx = fabs(dx), absDy = fabs(dy);
+		double sx, sy;
+		int stepX, stepY;
+		if (dx>0){
+			sx = (mapX - startX + 1) * absDx;
+			stepX = 1;
+		}else{
+			sx = (startX  - mapX) * absDx;
+			stepX = - 1;
+		}
+
+		if (dy>0){
+			sy = (mapY - startY + 1) * absDy;
+			stepY = 1;
+		}else{
+			sy = (startY  - mapY) * absDy;
+			stepY = - 1;
+		}
+		bool hitX = true;
+		while (true)
+		{
+			if(sx < sy){
+				mapX = mapX + stepX;
+				sx = sx + absDx;
+				hitX = true;
+			}else{
+				mapY = mapY + stepY;
+				sy = sy + absDy;
+				hitX = false;
+			}
+
+			if(map.walls[mapY][mapX] > 0){
+				double dist; 
+				if(hitX){
+					sx = sx - absDx; //remove last dx
+					dist = sx;
+				}else{
+					sy = sy - absDy; //remove last dy
+					dist = sy;
+				}
+				*catetX = dist * angleSin;
+				*catetY = dist * angleCos;
+				double n;
+				if(hitX){
+					*textureX = modf(startY + *catetY,&n);
+				}else{
+					*textureX = modf(startX + *catetX,&n);
+				}
+				*perpDist = dist *  cos(rayAngle);
+				*mapXResult = mapX;
+				*mapYResult = mapY;
+				return 0;
+			}
+		}	
+	} 
+	
+static int castRays(double startX, double startY, double cameraAngle, double fov){
+	double rayAngle = - fov / 2.0;
+	double cameraRayAngle = fov/camera.width;
+	double perpDist; 
+	double catetX;
+	double catetY;
+	double textureX;
+	int mapX;
+	int mapY;
+	int halfCameraHeight = camera.height/2;
+	for (int i=0; i < camera.width; i++){
+		castRay(startX, startY, cameraAngle, rayAngle, &perpDist, &catetX, &catetY, &mapX, &mapY, &textureX);
+		rayAngle += cameraRayAngle;
+		//fix fov and aspect here
+		int halfLineHeight = (int)(round(camera.height / perpDist)/2.0 + 0.5);
+		int drawStart = halfCameraHeight - halfLineHeight;
+		int drawEnd =  halfLineHeight + halfCameraHeight;
+		if(drawStart < 0){
+			drawStart = 0;
+		} 
+		if(drawEnd > camera.height){
+			drawEnd = camera.height;
+		}
+		//draw vert line
+		int textureId = map.walls[mapY][mapX];
+		Texture *wall = &wallTextures[textureId];
+		int pixelX = (int)((wall->width-1) * textureX);
+		double yWidth = drawEnd - drawStart;
+		for (int y = drawStart; y <= drawEnd; y++) {
+			int pixelY = (int)((y - drawStart) / yWidth * 63);
+			Color *color = &(wall->pixels[pixelY][pixelX]);
+			setPixel(i, y, color);
+		}
+	}
+	return 0;
 }
+
+static int castRaysLua(lua_State* L)
+{	
+	double startX = lua_tonumber(L, 1), startY = lua_tonumber(L, 2);
+	double cameraAngle = lua_tonumber(L, 3), rayAngle = lua_tonumber(L, 4);
+	castRays(startX, startY, cameraAngle, rayAngle);
+	return 0;
+}
+
+static int castRayLua(lua_State* L)
+{	
+	double startX = lua_tonumber(L, 1), startY = lua_tonumber(L, 2);
+	double cameraAngle = lua_tonumber(L, 3), rayAngle = lua_tonumber(L, 4);
+	double perpDist; 
+	double catetX;
+	double catetY;
+	double textureX;
+	int mapX;
+	int mapY;
+	castRay(startX, startY, cameraAngle, rayAngle, &perpDist, &catetX, &catetY, &mapX, &mapY, &textureX);
+	lua_pushnumber(L, perpDist);
+	lua_pushnumber(L, catetX);
+	lua_pushnumber(L, catetY);
+	lua_pushnumber(L, mapX);
+	lua_pushnumber(L, mapY);
+	lua_pushnumber(L, textureX);
+	return 6;
+}
+
+
 
 static int setPixelLua(lua_State* L){
 	int x = (int) lua_tonumber(L, 1);
@@ -167,12 +231,13 @@ static int floorCasting(lua_State* L){
 		double currentDist;
 		int **floors;
 		if(isFloor){
-			currentDist =  PRE_CALC_HEIGHT_DISTANCE[halfHeight - y];
+			//currentDist =  PRE_CALC_HEIGHT_DISTANCE[halfHeight - y];
 			floors = map.floors; 
 		}else{
-			currentDist =   PRE_CALC_HEIGHT_DISTANCE[y - halfHeight];
+			//currentDist =   PRE_CALC_HEIGHT_DISTANCE[y - halfHeight];
 			floors = map.ceils; 
 		}	
+		currentDist =   1;
 		double weight = currentDist / perpDist;
 		double floorX = (weight * endPositionX + (1.0 - weight) * cameraX);
 		double floorY = (weight * endPositionY + (1.0 - weight) * cameraY);
@@ -226,15 +291,10 @@ static int clearArrayColor(Color **array, int height){
 }
 
 static int initCamera(lua_State* L){
-	int width = (int) lua_tonumber(L, 1);
-	int height = (int) lua_tonumber(L, 2);
-	free(PRE_CALC_HEIGHT_DISTANCE);
-	double halfHeight = height/2.0;
-	int size = ceil(halfHeight);
-	PRE_CALC_HEIGHT_DISTANCE = (double *)malloc(sizeof(double) * size);
-	for(int i = 0;  i < size; i++){
-		PRE_CALC_HEIGHT_DISTANCE[i] =  halfHeight / i;
-	}
+	camera.x = (int) lua_tonumber(L, 1);
+	camera.y = (int) lua_tonumber(L, 2);
+	camera.width = (int) lua_tonumber(L, 3);
+	camera.height = (int) lua_tonumber(L, 4);
 	return 0;
 }
 
@@ -344,7 +404,8 @@ static const luaL_reg Module_methods[] =
 	{"init_camera", initCamera},
 	{"init_wall_textures",initWallTextures},
 	{"set_map", setMap},
-	{"cast_ray", castRay},
+	{"cast_ray", castRayLua},
+	{"cast_rays", castRaysLua},
 	{"vert_line", vertLine},
 	{"floor_casting", floorCasting},
 	{"set_pixel", setPixelLua},

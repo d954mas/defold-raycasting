@@ -77,7 +77,7 @@ function update(self, dt)
 	WORLD.player.position.y = LUME.clamp(WORLD.player.position.y, 1.5, 23)
 	WORLD.update_camera()
 	SCREEN.clear()
-	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
+	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP)
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
 	print("time:" .. os.clock() - time)
