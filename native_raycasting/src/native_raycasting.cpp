@@ -39,7 +39,7 @@ struct Map {
 static int BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_SIZE;
 static uint8_t* STREAM = 0x0;
 static struct Texture *wallTextures;
-
+static double *PRE_CALC_HEIGHT_DISTANCE;
 static int setPixel(int x, int y, Color *color){
 	int id = (y * BUFFER_WIDTH + x) * 3;
 	//if(id > 480*640 *3 || id <0){
@@ -147,24 +147,27 @@ static int castRays(double startX, double startY, double cameraAngle, double fov
 		int textureId = map.walls[mapY][mapX]-1;
 		Texture *wall = &wallTextures[textureId];
 		int pixelX = (int)((wall->width-1) * textureX);
-		double yWidth = drawEnd - drawStart;
+		double wallHeight = halfLineHeight /31.5; //lineHeight /63
+		double pixelY = 0;
+		double pixelYAdd = 1 / wallHeight;
 		for (int y = drawStart; y <= drawEnd; y++) {
-			int pixelY = (int)((y - drawStart) / yWidth * 63);
-			Color *color = &(wall->pixels[pixelY][pixelX]);
+			Color *color = &(wall->pixels[(int)pixelY][pixelX]);
 			setPixel(i, y, color);
+			pixelY += pixelYAdd;
 		}
 		//draw floor and ceilings
 		double n;
 		for(int y = 0; y < drawStart; y++){
-			double currentDist = (double)halfCameraHeight / (halfCameraHeight - y);
+			//precalc currentDist
+			double currentDist = PRE_CALC_HEIGHT_DISTANCE[y];
 			double weight = currentDist / perpDist;
-			double floorX = (weight * endPositionX + (1.0 - weight) * startX);
-			double floorY = (weight * endPositionY + (1.0 - weight) * startY);
+			double weight2 = 1.0 - weight;
+			double floorX = (weight * endPositionX + weight2 * startX);
+			double floorY = (weight * endPositionY + weight2 * startY);
 			int cellX = (int)(floorX);
 			int cellY = (int)(floorY);
-			//int floorId = floors[cellY][cellX];
-			int textureX = round(modf(floorX,&n) * 63);
-			int textureY = round(modf(floorY,&n) * 63);
+			int textureX = (int)(modf(floorX,&n) * 64);
+			int textureY = (int)(modf(floorY,&n) * 64);
 			int floorId = map.floors[cellY][cellX];
 			int ceilId = map.ceils[cellY][cellX];
 			Texture *floorTexture = &wallTextures[floorId-1];
@@ -207,75 +210,11 @@ static int castRayLua(lua_State* L)
 	return 6;
 }
 
-
-
 static int setPixelLua(lua_State* L){
 	int x = (int) lua_tonumber(L, 1);
 	int y = (int) lua_tonumber(L, 2);
 	int color = (int) lua_tonumber(L, 3);
 	//setPixel(x, y, color);
-	return 0;
-}
-
-static int vertLine(lua_State* L){
-	int x = (int) lua_tonumber(L, 1);
-	int startY = (int) lua_tonumber(L, 2);
-	int endY = (int) lua_tonumber(L, 3);
-	int textureId = (int) lua_tonumber(L, 4);
-	Texture *wall = &wallTextures[textureId];
-	double textureX = lua_tonumber(L, 5);
-	int pixelX = (int)((wall->width-1) * textureX);
-	double yWidth = endY - startY;
-	for (int y = startY; y <= endY; y++) {
-		int pixelY = (int)((y - startY) / yWidth * 63);
-		Color *color = &(wall->pixels[pixelY][pixelX]);
-		setPixel(x, y, color);
-	}
-	return 1;
-}
-
-static int floorCasting(lua_State* L){
-	int startX = (int) lua_tonumber(L, 1);
-	int startY = (int) lua_tonumber(L, 2);
-	int endY = (int) lua_tonumber(L, 3);
-
-	double cameraX = lua_tonumber(L, 4);
-	double cameraY = lua_tonumber(L, 5);
-	double cameraHeight = lua_tonumber(L, 6);
-
-	double endPositionX = lua_tonumber(L, 7);
-	double endPositionY = lua_tonumber(L, 8);
-
-	double perpDist = lua_tonumber(L, 9);
-
-	int halfHeight = cameraHeight/2;
-	bool isFloor = startY >=endY;
-	int loopStartY = isFloor ? startY : endY;
-	int loopEndY = isFloor ? endY : startY;
-	for(int y = loopStartY; y > loopEndY; y--){
-		double currentDist;
-		int **floors;
-		if(isFloor){
-			//currentDist =  PRE_CALC_HEIGHT_DISTANCE[halfHeight - y];
-			floors = map.floors; 
-		}else{
-			//currentDist =   PRE_CALC_HEIGHT_DISTANCE[y - halfHeight];
-			floors = map.ceils; 
-		}	
-		currentDist =   1;
-		double weight = currentDist / perpDist;
-		double floorX = (weight * endPositionX + (1.0 - weight) * cameraX);
-		double floorY = (weight * endPositionY + (1.0 - weight) * cameraY);
-		int cellX = (int)(floorX);
-		int cellY = (int)(floorY);
-		int floorId = floors[cellY][cellX];
-		double n;
-		int textureX = round(modf(floorX,&n) * 63);
-		int textureY = round(modf(floorY,&n) * 63);
-		Texture *floorTexture = &wallTextures[floorId-1];
-		Color *color = &(floorTexture->pixels[textureY][textureX]);
-		setPixel(startX, y, color);
-	}	
 	return 0;
 }
 
@@ -320,6 +259,14 @@ static int initCamera(lua_State* L){
 	camera.y = (int) lua_tonumber(L, 2);
 	camera.width = (int) lua_tonumber(L, 3);
 	camera.height = (int) lua_tonumber(L, 4);
+
+	free(PRE_CALC_HEIGHT_DISTANCE);
+	double halfHeight = camera.height/2.0;
+	int size = ceil(halfHeight);
+	PRE_CALC_HEIGHT_DISTANCE = (double *)malloc(sizeof(double) * size);
+	for(int i = 0;  i < size; i++){
+		PRE_CALC_HEIGHT_DISTANCE[i] =  halfHeight / (halfHeight - i);
+	}
 	return 0;
 }
 
@@ -431,8 +378,6 @@ static const luaL_reg Module_methods[] =
 	{"set_map", setMap},
 	{"cast_ray", castRayLua},
 	{"cast_rays", castRaysLua},
-	{"vert_line", vertLine},
-	{"floor_casting", floorCasting},
 	{"set_pixel", setPixelLua},
 	{0, 0}
 };
