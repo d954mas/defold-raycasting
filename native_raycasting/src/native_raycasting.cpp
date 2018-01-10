@@ -12,7 +12,13 @@
 struct Texture {
 	int width;
 	int height;
-	int **pixels;
+	struct Color **pixels;
+};
+
+struct Color {
+	int r;
+	int g;
+	int b;
 };
 
 struct Map {
@@ -98,19 +104,19 @@ static int castRay(lua_State* L)
 	}
 }
 
-static int setPixel(int x, int y, int color){
+static int setPixel(int x, int y, Color *color){
 	int id = (y * BUFFER_WIDTH + x) * 3;
-	if(id > 480*640 *3 || id <0){
-		printf("bad id:%d", id);
-		return 1;
-	}
+	//if(id > 480*640 *3 || id <0){
+		//printf("bad id:%d", id);
+		//return 1;
+	//}
 	//printf("id:%d", id);
-	int r = color >> 16;
-	int g = (color & 0x00FF00) >> 8;
-	int b= color & 0x0000ff;
-	STREAM[id] = r;
-	STREAM[id + 1] = g;
-	STREAM[id + 2] = b;
+//	int r = color >> 16;
+	//int g = (color & 0x00FF00) >> 8;
+	//int b= color & 0x0000ff;
+	STREAM[id] = color->r;
+	STREAM[id + 1] = color->g;
+	STREAM[id + 2] = color->b;
 	return 1;
 }
 
@@ -118,7 +124,7 @@ static int setPixelLua(lua_State* L){
 	int x = (int) lua_tonumber(L, 1);
 	int y = (int) lua_tonumber(L, 2);
 	int color = (int) lua_tonumber(L, 3);
-	setPixel(x, y, color);
+	//setPixel(x, y, color);
 	return 0;
 }
 
@@ -127,13 +133,13 @@ static int vertLine(lua_State* L){
 	int startY = (int) lua_tonumber(L, 2);
 	int endY = (int) lua_tonumber(L, 3);
 	int textureId = (int) lua_tonumber(L, 4);
-	Texture wall = wallTextures[textureId];
+	Texture *wall = &wallTextures[textureId];
 	double textureX = lua_tonumber(L, 5);
-	int pixelX = (int)((wall.width-1) * textureX);
+	int pixelX = (int)((wall->width-1) * textureX);
 	double yWidth = endY - startY;
 	for (int y = startY; y <= endY; y++) {
 		int pixelY = (int)((y - startY) / yWidth * 63);
-		int color = wall.pixels[pixelY][pixelX];
+		Color *color = &(wall->pixels[pixelY][pixelX]);
 		setPixel(x, y, color);
 	}
 	return 1;
@@ -176,8 +182,8 @@ static int floorCasting(lua_State* L){
 		double n;
 		int textureX = round(modf(floorX,&n) * 63);
 		int textureY = round(modf(floorY,&n) * 63);
-		Texture floorTexture = wallTextures[floorId-1];
-		int color = floorTexture.pixels[textureY][textureX];
+		Texture *floorTexture = &wallTextures[floorId-1];
+		Color *color = &(floorTexture->pixels[textureY][textureX]);
 		setPixel(startX, y, color);
 	}	
 	return 0;
@@ -192,7 +198,25 @@ static int ** createTwoArrayInt(int width, int height){
 	return array;
 }
 
+static Color ** createTwoArrayColor(int width, int height){
+	Color **array = (Color**)malloc(height * sizeof(Color));
+	for (int i = 0; i<height; i++) 
+	{
+		array[i] = (Color*)malloc(sizeof(Color) * width);
+	}
+	return array;
+}
+
 static int clearArrayInt(int **array, int height){
+	for (int i = 0; i < height; i++)
+	{
+		free(array[i]);
+	}
+	free(array);
+	return 0;
+}
+
+static int clearArrayColor(Color **array, int height){
 	for (int i = 0; i < height; i++)
 	{
 		free(array[i]);
@@ -222,14 +246,18 @@ static Texture getTextureFromStack(lua_State* L){
 	texture.height = (int)lua_tonumber(L, -1);
 	lua_pop(L, 2);
 	//printf("Texture width:%d height:%d\n", texture.width, texture.height);
-	texture.pixels = createTwoArrayInt(texture.width, texture.height);
+	texture.pixels = createTwoArrayColor(texture.width, texture.height);
 	for(int y = 0; y < texture.height; y++){
 		for(int x = 0; x < texture.width; x++){
 			int id = y * texture.width + x + 1;
 			lua_rawgeti(L,-1,id);
-			int cell = (int)lua_tonumber(L, -1);
+			int color = (int)lua_tonumber(L, -1);
 			lua_pop(L, 1);
-			texture.pixels[y][x] = cell;
+			struct Color colorStruct;
+			colorStruct.r = color >> 16;
+			colorStruct.g = (color & 0x00FF00) >> 8;
+			colorStruct.b= color & 0x0000ff;
+			texture.pixels[y][x] = colorStruct;
 		}
 	}
 	return texture;
