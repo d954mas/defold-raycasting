@@ -141,7 +141,7 @@ static int castRays(double startX, double startY, double cameraAngle, double fov
 			drawEnd = camera.height;
 		}
 		//draw vert line
-		int textureId = map.walls[mapY][mapX];
+		int textureId = map.walls[mapY][mapX]-1;
 		Texture *wall = &wallTextures[textureId];
 		int pixelX = (int)((wall->width-1) * textureX);
 		double yWidth = drawEnd - drawStart;

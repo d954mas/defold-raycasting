@@ -15,7 +15,8 @@ function init(self)
 	go.set_position(vmath.vector3(SCREEN.WIDTH/2, SCREEN.HEIGHT/2, 0))
 	local scale = vmath.vector3(50 * SCREEN.WIDTH, 50 * SCREEN.HEIGHT, 1)
 	go.set_scale(scale)
-	native_raycasting.init_camera(WORLD.player.camera.size.x, WORLD.player.camera.size.y)
+	local camera = WORLD.player.camera
+	native_raycasting.init_camera(camera.position.x, camera.position.y, camera.size.x, camera.size.y)
 	native_raycasting.set_map(WORLD.map)
 	native_raycasting.init_wall_textures(WALLS)
 end
@@ -59,12 +60,12 @@ local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, ca
 	local end_position_x = camera.position.x + catet_x
 	local end_position_y = camera.position.y + catet_y
 	if draw_start ~= camera.bounds.y then
-		native_raycasting.floor_casting(x, draw_start - 1, camera.bounds.y, camera.position.x, camera.position.y, camera.size.y,
-			end_position_x, end_position_y, perp_dist)
+		--native_raycasting.floor_casting(x, draw_start - 1, camera.bounds.y, camera.position.x, camera.position.y, camera.size.y,
+			--end_position_x, end_position_y, perp_dist)
 	end
 	if draw_end ~= camera.bounds.w - 1 then
-		native_raycasting.floor_casting(x, draw_end + 1, camera.bounds.w-1, camera.position.x, camera.position.y, camera.size.y,
-			 end_position_x, end_position_y, perp_dist)
+		--native_raycasting.floor_casting(x, draw_end + 1, camera.bounds.w-1, camera.position.x, camera.position.y, camera.size.y,
+			-- end_position_x, end_position_y, perp_dist)
 	end
 	
 end	
@@ -78,6 +79,7 @@ function update(self, dt)
 	WORLD.update_camera()
 	SCREEN.clear()
 	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP)
+	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
 	print("time:" .. os.clock() - time)
