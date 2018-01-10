@@ -57,16 +57,16 @@ local function on_ray_intersept(self, camera, wall_cells, perp_dist, catet_x, ca
 	-- wall_cells[map_x, map_y]
 	native_raycasting.vert_line(x, draw_start, draw_end,wall_cells[map_y][map_x], texture_x)
 
-	local end_position_x = camera.position.x + catet_x
-	local end_position_y = camera.position.y + catet_y
-	if draw_start ~= camera.bounds.y then
+	--local end_position_x = camera.position.x + catet_x
+	--local end_position_y = camera.position.y + catet_y
+	--if draw_start ~= camera.bounds.y then
 		--native_raycasting.floor_casting(x, draw_start - 1, camera.bounds.y, camera.position.x, camera.position.y, camera.size.y,
 			--end_position_x, end_position_y, perp_dist)
-	end
-	if draw_end ~= camera.bounds.w - 1 then
+	--end
+	--if draw_end ~= camera.bounds.w - 1 then
 		--native_raycasting.floor_casting(x, draw_end + 1, camera.bounds.w-1, camera.position.x, camera.position.y, camera.size.y,
 			-- end_position_x, end_position_y, perp_dist)
-	end
+	--end
 	
 end	
 
@@ -78,11 +78,11 @@ function update(self, dt)
 	WORLD.player.position.y = LUME.clamp(WORLD.player.position.y, 1.5, 23)
 	WORLD.update_camera()
 	SCREEN.clear()
-	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP)
-	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
+	RAYS.cast_rays(WORLD.player.camera)
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
 	print("time:" .. os.clock() - time)
+	
 	
 end
 

@@ -8,6 +8,7 @@
 #include <dmsdk/sdk.h>
 #include <math.h>
 #include <stdlib.h>
+#include <algorithm>
 
 struct Camera {
 	int x;
@@ -129,17 +130,19 @@ static int castRays(double startX, double startY, double cameraAngle, double fov
 	int halfCameraHeight = camera.height/2;
 	for (int i=0; i < camera.width; i++){
 		castRay(startX, startY, cameraAngle, rayAngle, &perpDist, &catetX, &catetY, &mapX, &mapY, &textureX);
+		double endPositionX = startX + catetX;
+		double endPositionY = startY + catetY;
 		rayAngle += cameraRayAngle;
 		//fix fov and aspect here
-		int halfLineHeight = (int)(round(camera.height / perpDist)/2.0 + 0.5);
+		int lineHeight = round(camera.height / perpDist);
+		if(lineHeight < 2){
+			lineHeight = 2;
+		}else if(lineHeight > camera.height){
+			lineHeight = camera.height;
+		}
+		int halfLineHeight = (int)(lineHeight/2.0 + 0.5);
 		int drawStart = halfCameraHeight - halfLineHeight;
 		int drawEnd =  halfLineHeight + halfCameraHeight;
-		if(drawStart < 0){
-			drawStart = 0;
-		} 
-		if(drawEnd > camera.height){
-			drawEnd = camera.height;
-		}
 		//draw vert line
 		int textureId = map.walls[mapY][mapX]-1;
 		Texture *wall = &wallTextures[textureId];
@@ -150,6 +153,28 @@ static int castRays(double startX, double startY, double cameraAngle, double fov
 			Color *color = &(wall->pixels[pixelY][pixelX]);
 			setPixel(i, y, color);
 		}
+		//draw floor and ceilings
+		double n;
+		for(int y = 0; y < drawStart; y++){
+			double currentDist = (double)halfCameraHeight / (halfCameraHeight - y);
+			double weight = currentDist / perpDist;
+			double floorX = (weight * endPositionX + (1.0 - weight) * startX);
+			double floorY = (weight * endPositionY + (1.0 - weight) * startY);
+			int cellX = (int)(floorX);
+			int cellY = (int)(floorY);
+			//int floorId = floors[cellY][cellX];
+			int textureX = round(modf(floorX,&n) * 63);
+			int textureY = round(modf(floorY,&n) * 63);
+			int floorId = map.floors[cellY][cellX];
+			int ceilId = map.ceils[cellY][cellX];
+			Texture *floorTexture = &wallTextures[floorId-1];
+			Color *color = &(floorTexture->pixels[textureY][textureX]);
+			setPixel(i, y, color);
+
+			Texture *ceilTexture = &wallTextures[ceilId-1];
+			Color *colorCeil = &(ceilTexture->pixels[textureY][textureX]);
+			setPixel(i, camera.height - y - 1, colorCeil);
+		}
 	}
 	return 0;
 }
@@ -157,8 +182,8 @@ static int castRays(double startX, double startY, double cameraAngle, double fov
 static int castRaysLua(lua_State* L)
 {	
 	double startX = lua_tonumber(L, 1), startY = lua_tonumber(L, 2);
-	double cameraAngle = lua_tonumber(L, 3), rayAngle = lua_tonumber(L, 4);
-	castRays(startX, startY, cameraAngle, rayAngle);
+	double cameraAngle = lua_tonumber(L, 3), fov = lua_tonumber(L, 4);
+	castRays(startX, startY, cameraAngle, fov);
 	return 0;
 }
 

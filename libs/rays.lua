@@ -13,7 +13,7 @@ function M.cast_rays(camera, wall_cells, fun, go_self)
 			ray_angle = ray_angle + camera.ray_angle
 		end	
 	else
-		native_raycasting.cast_rays(camera.position.x, camera.position.y, camera.angle, ray_angle)
+		native_raycasting.cast_rays(camera.position.x, camera.position.y, camera.angle,  camera.fov)
 	end
 	--print("native cast_rays:" .. os.clock() - time)
 end
