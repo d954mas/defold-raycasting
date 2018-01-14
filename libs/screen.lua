@@ -8,9 +8,6 @@ M.WIDTH = CONST.WINDOW_WIDTH
 M.HEIGHT = CONST.WINDOW_HEIGHT
 M.BUFFER = buffer.create(M.WIDTH * M.HEIGHT, { {name=hash("rgb"), type=buffer.VALUE_TYPE_UINT8, count=3} } )
 
-native_raycasting.init_buffer(M.WIDTH, M.HEIGHT, M.BUFFER)
-function M.clear()
-	native_raycasting.clear_buffer()
-end
+native_raycasting.set_buffer(M.WIDTH, M.HEIGHT, M.BUFFER)
 
 return M
