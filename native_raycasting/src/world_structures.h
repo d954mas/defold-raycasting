@@ -21,7 +21,17 @@ struct Color {
 	int b;
 };
 
+struct Plane {
+	int x;
+	int y;
+	int endX;
+	int endY;
+	int width;
+	int height;
+};
+
 void updateCamera(struct Camera*, double, double, double);
+void updatePlane(struct Plane*, int, int, int, int);
 void parseMap(lua_State*, struct Map*);
 
 #endif

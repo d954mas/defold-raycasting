@@ -29,6 +29,15 @@ void updateCamera(struct Camera* camera, double x, double y, double angle){
 	camera->angle = angle;
 }
 
+void updatePlane(struct Plane* plane, int x, int y, int endX, int endY){
+	plane->x = x;
+	plane->y = y;
+	plane->endX = endX;
+	plane->endY = endY;
+	plane->width = endX - x;
+	plane->height = endY - y;
+}
+
 void parseMap(lua_State* L, struct Map* map){
 	lua_getfield(L, 1, "WIDTH");
 	lua_getfield(L, 1, "HEIGHT");

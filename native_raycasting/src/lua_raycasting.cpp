@@ -7,12 +7,20 @@
 #include <dmsdk/sdk.h>
 #include "native_raycasting.h"
 
-static int updateCamera(lua_State* L){
-	int cameraId = (int)lua_tonumber(L, 1);
-	double posX = lua_tonumber(L, 2);
-	double posY = lua_tonumber(L, 3);
-	double angle = lua_tonumber(L, 4);
-	updateCamera(cameraId, posX, posY, angle);
+static int updateCameraLua(lua_State* L){
+	double posX = lua_tonumber(L, 1);
+	double posY = lua_tonumber(L, 2);
+	double angle = lua_tonumber(L, 3);
+	updateCamera(posX, posY, angle);
+	return 0;
+}
+
+static int updatePlaneLua(lua_State* L){
+	int x = lua_tonumber(L, 1);
+	int y = lua_tonumber(L, 2);
+	int endX = lua_tonumber(L, 3);
+	int endY = lua_tonumber(L, 4);
+	updatePlane(x, y, endX, endY);
 	return 0;
 }
 
@@ -30,15 +38,14 @@ static int setMapLua(lua_State* L){
 }
 
 static int castRayLua(lua_State* L){
-	int cameraId = (int)lua_tonumber(L, 1);
-	double rayAngle = lua_tonumber(L, 2);
+	double rayAngle = lua_tonumber(L, 1);
 	double perpDist; 
 	double catetX;
 	double catetY;
 	double textureX;
 	int mapX;
 	int mapY;
-	castSingleRay(cameraId, rayAngle, &perpDist, &catetX, &catetY, &mapX, &mapY, &textureX);
+	castSingleRay(rayAngle, &perpDist, &catetX, &catetY, &mapX, &mapY, &textureX);
 	lua_pushnumber(L, perpDist);
 	lua_pushnumber(L, catetX);
 	lua_pushnumber(L, catetY);
@@ -51,7 +58,8 @@ static int castRayLua(lua_State* L){
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {	
-	{"update_camera", updateCamera},
+	{"update_camera", updateCameraLua},
+	{"update_plane", updatePlaneLua},
 	{"set_buffer", setBufferLua},
 	{"set_map", setMapLua},
 	{"cast_ray", castRayLua},

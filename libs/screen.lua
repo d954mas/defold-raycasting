@@ -9,5 +9,5 @@ M.HEIGHT = CONST.WINDOW_HEIGHT
 M.BUFFER = buffer.create(M.WIDTH * M.HEIGHT, { {name=hash("rgb"), type=buffer.VALUE_TYPE_UINT8, count=3} } )
 
 native_raycasting.set_buffer(M.WIDTH, M.HEIGHT, M.BUFFER)
-
+native_raycasting.update_plane(0, 0, M.WIDTH, M.HEIGHT)
 return M

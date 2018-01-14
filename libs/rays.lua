@@ -8,7 +8,7 @@ function M.cast_rays(camera, wall_cells, fun, go_self)
 	local ray_angle = - half_fov
 	if fun then
 		for i=1 , camera.rays do
-			local perp_dist, catet_x, catet_y,  map_x, map_y, texture_x = native_raycasting.cast_ray(0, ray_angle)
+			local perp_dist, catet_x, catet_y,  map_x, map_y, texture_x = native_raycasting.cast_ray(ray_angle)
 			if fun then fun(go_self, camera, wall_cells, perp_dist, catet_x, catet_y,  map_x, map_y, side, i, texture_x) end
 			ray_angle = ray_angle + camera.ray_angle
 		end	
