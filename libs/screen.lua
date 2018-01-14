@@ -10,4 +10,5 @@ M.BUFFER = buffer.create(M.WIDTH * M.HEIGHT, { {name=hash("rgb"), type=buffer.VA
 
 native_raycasting.set_buffer(M.WIDTH, M.HEIGHT, M.BUFFER)
 native_raycasting.update_plane(0, 0, M.WIDTH, M.HEIGHT)
+native_raycasting.set_camera_fov(CONST.FOV)
 return M

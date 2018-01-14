@@ -2,6 +2,7 @@
 #define BUFFER
 
 #include <dmsdk/sdk.h>
+#include "world_structures.h"
 struct Buffer {
 	int width;
 	int height;
@@ -10,6 +11,7 @@ struct Buffer {
 
 
 void initBuffer(struct Buffer*, int, int, dmScript::LuaHBuffer*);
-//struct Map parseMap(lua_State*);
+void clearBuffer(struct Buffer*);
+void setPixel(struct Buffer*, int, int, Color*);
 
 #endif

@@ -5,6 +5,7 @@ struct Camera {
 	double x;
 	double y;
 	double angle;
+	double fov;
 };
 
 struct Map {
@@ -31,6 +32,7 @@ struct Plane {
 };
 
 void updateCamera(struct Camera*, double, double, double);
+void setCameraFov(struct Camera*, double);
 void updatePlane(struct Plane*, int, int, int, int);
 void parseMap(lua_State*, struct Map*);
 

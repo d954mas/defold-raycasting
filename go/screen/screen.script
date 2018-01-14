@@ -71,8 +71,10 @@ end
 
 function update(self, dt)
 	WORLD.update_camera()
-	local camera = WORLD.player.camera;
+	local camera = WORLD.player.camera
+	native_raycasting.clear_buffer()
 	native_raycasting.update_camera(camera.position.x, camera.position.y, camera.angle)
+	native_raycasting.cast_rays()
 	--print("***************")
 --	local time = os.clock()
 	--WORLD.player.position.x = LUME.clamp(WORLD.player.position.x, 1.5, 23)
@@ -81,8 +83,8 @@ function update(self, dt)
 --	SCREEN.clear()
 	--RAYS.cast_rays(WORLD.player.camera)
 	--print("time:" .. os.clock() - time)
---	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
-	--resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
+	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
+	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
 end
 
 

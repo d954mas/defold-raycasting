@@ -15,6 +15,12 @@ static int updateCameraLua(lua_State* L){
 	return 0;
 }
 
+static int setCameraFovLua(lua_State* L){
+	double fov = lua_tonumber(L, 1);
+	setCameraFov(fov);
+	return 0;
+}
+
 static int updatePlaneLua(lua_State* L){
 	int x = lua_tonumber(L, 1);
 	int y = lua_tonumber(L, 2);
@@ -29,6 +35,11 @@ static int setBufferLua(lua_State* L){
 	int height = (int) lua_tonumber(L, 2);
 	dmScript::LuaHBuffer* buffer = dmScript::CheckBuffer(L, 3);
 	setBuffer(width, height, buffer);
+	return 0;
+}
+
+static int clearBufferLua(lua_State* L){
+	clearBuffer();
 	return 0;
 }
 
@@ -55,14 +66,22 @@ static int castRayLua(lua_State* L){
 	return 6;
 }
 
+static int castRaysLua(lua_State* L){
+	castRays();
+	return 0;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {	
 	{"update_camera", updateCameraLua},
+	{"set_camera_fov", setCameraFovLua},
 	{"update_plane", updatePlaneLua},
 	{"set_buffer", setBufferLua},
+	{"clear_buffer", clearBufferLua},
 	{"set_map", setMapLua},
 	{"cast_ray", castRayLua},
+	{"cast_rays", castRaysLua},
 	{0, 0}
 };
 

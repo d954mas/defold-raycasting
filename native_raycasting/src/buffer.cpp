@@ -18,3 +18,8 @@ void setPixel(struct Buffer* buffer, int x, int y, Color *color){
 	buffer->stream[id + 1] = color->g;
 	buffer->stream[id + 2] = color->b;
 }
+void clearBuffer(struct Buffer* buffer){
+	for(int i=0; i< (buffer->width * buffer->height * 3); i++){
+		buffer->stream[i] = 0;
+	}
+}

@@ -29,6 +29,10 @@ void updateCamera(struct Camera* camera, double x, double y, double angle){
 	camera->angle = angle;
 }
 
+void setCameraFov(struct Camera* camera, double fov){
+	camera->fov = fov;
+}
+
 void updatePlane(struct Plane* plane, int x, int y, int endX, int endY){
 	plane->x = x;
 	plane->y = y;
