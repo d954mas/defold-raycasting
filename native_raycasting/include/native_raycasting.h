@@ -1,5 +1,4 @@
-#ifndef NATIVE_RAYCASTING
-#define NATIVE_RAYCASTING
+#pragma once
 #include <dmsdk/sdk.h>
 
 void updateCamera(double, double, double);
@@ -11,5 +10,3 @@ void updatePlane(int, int, int, int);
 void castSingleRay(double, double *, double *, 
 	double *, int *, int *, double *);
 void castRays();
-
-#endif

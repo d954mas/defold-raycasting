@@ -3,6 +3,7 @@
 #include "world_structures.h"
 #include "buffer.h"
 #include "raycasting.h"
+#include "texture.h"
 
 static struct Camera camera;
 static struct Buffer buffer;
@@ -50,7 +51,7 @@ void castRays(){
 		double endPositionY = camera.y + catetY;
 		currentAngle += rayAngle;
 		//fix fov and aspect here
-		int lineHeight = round(plane.height / perpDist);
+		int lineHeight = (int)round(plane.height / perpDist);
 		if(lineHeight < 2){
 			lineHeight = 2;
 		}else if(lineHeight > plane.height){
@@ -68,8 +69,8 @@ void castRays(){
 		//double pixelYAdd = 1.0 / wallHeight;
 		struct Color color;
 		color.r = 255;
-		color.b = 0;
 		color.g = 0;
+		color.b = 0;
 		for (int y = drawStart; y <= drawEnd; y++) {
 			setPixel(&buffer, x, y, &color);
 		}

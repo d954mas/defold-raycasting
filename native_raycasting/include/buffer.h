@@ -1,8 +1,7 @@
-#ifndef BUFFER
-#define BUFFER
+#pragma once
 
 #include <dmsdk/sdk.h>
-#include "world_structures.h"
+#include "texture.h"
 struct Buffer {
 	int width;
 	int height;
@@ -13,5 +12,3 @@ struct Buffer {
 void initBuffer(struct Buffer*, int, int, dmScript::LuaHBuffer*);
 void clearBuffer(struct Buffer*);
 void setPixel(struct Buffer*, int, int, Color*);
-
-#endif

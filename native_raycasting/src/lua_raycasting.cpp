@@ -22,10 +22,10 @@ static int setCameraFovLua(lua_State* L){
 }
 
 static int updatePlaneLua(lua_State* L){
-	int x = lua_tonumber(L, 1);
-	int y = lua_tonumber(L, 2);
-	int endX = lua_tonumber(L, 3);
-	int endY = lua_tonumber(L, 4);
+	int x = (int)lua_tonumber(L, 1);
+	int y = (int)lua_tonumber(L, 2);
+	int endX = (int)lua_tonumber(L, 3);
+	int endY = (int)lua_tonumber(L, 4);
 	updatePlane(x, y, endX, endY);
 	return 0;
 }

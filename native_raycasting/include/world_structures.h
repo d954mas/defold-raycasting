@@ -1,5 +1,4 @@
-#ifndef WORLD_STRUCTURES
-#define WORLD_STRUCTURES
+#pragma once
 #include <dmsdk/sdk.h>
 struct Camera {
 	double x;
@@ -16,12 +15,6 @@ struct Map {
 	int **ceils;
 };
 
-struct Color {
-	int r;
-	int g;
-	int b;
-};
-
 struct Plane {
 	int x;
 	int y;
@@ -35,5 +28,3 @@ void updateCamera(struct Camera*, double, double, double);
 void setCameraFov(struct Camera*, double);
 void updatePlane(struct Plane*, int, int, int, int);
 void parseMap(lua_State*, struct Map*);
-
-#endif

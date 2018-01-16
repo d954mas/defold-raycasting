@@ -1,9 +1,17 @@
 #include <dmsdk/sdk.h>
 #include "lodepng.h"
+#include "png.h"
+
+unsigned char* decodeBuffer(dmBuffer::HBuffer hBuffer, int width, int height, LodePNGColorType type){
+	char* data = 0;
+	uint32_t datasize = 0;
+	dmBuffer::GetBytes(hBuffer, (void**)&data, &datasize);
+	return decodeChar(data, width, height, type);
+}
 /*
 get char array from png file bytes
 */
-static unsigned char* decode(char* png, int width, int height, LodePNGColorType type) {
+unsigned char* decodeChar(char* png, int width, int height, LodePNGColorType type) {
     // decode png to pixels
 	size_t png_length;
     unsigned char* pixels = 0;

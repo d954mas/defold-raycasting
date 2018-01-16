@@ -23,6 +23,13 @@ local function toggle_profiler(self, action_id, action)
 	msg.post("@system:", "toggle_profile")	
 end
 
+local function load_textures()
+	for i=1, 1 do
+		local buffer = resource.load("assets/images/walls/wall" .. i .. ".png")
+
+	end	
+end	
+
 function init(self)
 	math.randomseed(os.time())
 	--msg.post("@system:", "toggle_profile")	
