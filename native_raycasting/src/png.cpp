@@ -2,6 +2,10 @@
 #include "lodepng.h"
 #include "png.h"
 
+void decodeToTexture(dmBuffer::HBuffer hBuffer, int width, int height, int channels, struct Texture* texture){
+
+}
+
 unsigned char* decodeBuffer(dmBuffer::HBuffer hBuffer, int width, int height, LodePNGColorType type){
 	char* data = 0;
 	uint32_t datasize = 0;
