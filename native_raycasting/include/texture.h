@@ -1,5 +1,5 @@
 #pragma once
-
+#include <dmsdk/sdk.h>
 struct Color {
 	uint8_t r;
 	uint8_t g;
