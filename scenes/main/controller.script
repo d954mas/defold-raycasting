@@ -26,7 +26,7 @@ end
 local function load_textures()
 	for i=1, 1 do
 		local buffer = resource.load("assets/images/walls/wall" .. i .. ".png")
-
+		native_raycasting.load_texture(buffer)
 	end	
 end	
 

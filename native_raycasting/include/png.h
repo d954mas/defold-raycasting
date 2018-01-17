@@ -9,6 +9,6 @@ read png from char array or from defold buffer
 return char array for pixels
 */
 
-unsigned char* decodeBuffer(dmBuffer::HBuffer, int, int, LodePNGColorType);
-unsigned char* decodeChar(char*, int, int, LodePNGColorType);
-void decodeToTexture(dmBuffer::HBuffer, int, int, int, struct Texture*);
+unsigned char* decodeBuffer(dmBuffer::HBuffer, int);
+unsigned char* decodeChar(char*, int);
+void decodeToTexture(dmBuffer::HBuffer, int, struct Texture*);

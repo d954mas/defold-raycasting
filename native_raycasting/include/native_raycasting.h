@@ -10,3 +10,4 @@ void updatePlane(int, int, int, int);
 void castSingleRay(double, double *, double *, 
 	double *, int *, int *, double *);
 void castRays();
+void loadTexture(dmScript::LuaHBuffer*, int);

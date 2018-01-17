@@ -43,6 +43,12 @@ static int clearBufferLua(lua_State* L){
 	return 0;
 }
 
+static int loadTextureLua(lua_State* L){
+	dmScript::LuaHBuffer* buffer = dmScript::CheckBuffer(L, 1);
+	loadTexture(buffer, 4);
+	return 0;
+}
+
 static int setMapLua(lua_State* L){
 	setMap(L);
 	return 0;
@@ -79,6 +85,7 @@ static const luaL_reg Module_methods[] =
 	{"update_plane", updatePlaneLua},
 	{"set_buffer", setBufferLua},
 	{"clear_buffer", clearBufferLua},
+	{"load_texture", loadTextureLua},
 	{"set_map", setMapLua},
 	{"cast_ray", castRayLua},
 	{"cast_rays", castRaysLua},

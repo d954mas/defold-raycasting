@@ -12,8 +12,8 @@ static struct Map map;
 static struct Plane plane;
 static struct Texture textures[10];
 
-void loadTexture(dmScript::LuaHBuffer* luaBuffer, int width, int height, int channels){
-	decodeToTexture(luaBuffer->m_Buffer, width, height, channels, &textures[0]);
+void loadTexture(dmScript::LuaHBuffer* luaBuffer, int channels){
+	decodeToTexture(luaBuffer->m_Buffer,channels, &textures[0]);
 }
 
 void updateCamera(double x, double y, double angle){

@@ -2,38 +2,38 @@
 #include "lodepng.h"
 #include "png.h"
 
-void decodeToTexture(dmBuffer::HBuffer hBuffer, int width, int height, int channels, struct Texture* texture){
+void decodeToTexture(dmBuffer::HBuffer hBuffer, int channels, struct Texture* texture){
 
 }
 
-unsigned char* decodeBuffer(dmBuffer::HBuffer hBuffer, int width, int height, LodePNGColorType type){
+unsigned char* decodeBuffer(dmBuffer::HBuffer hBuffer, int channels){
 	char* data = 0;
 	uint32_t datasize = 0;
 	dmBuffer::GetBytes(hBuffer, (void**)&data, &datasize);
-	return decodeChar(data, width, height, type);
+	return decodeChar(data, channels);
 }
 /*
 get char array from png file bytes
 */
-unsigned char* decodeChar(char* png, int width, int height, LodePNGColorType type) {
+unsigned char* decodeChar(char* png,int channels){
     // decode png to pixels
 	size_t png_length;
     unsigned char* pixels = 0;
     uint32_t outw = 0;
     uint32_t outh = 0;
-    uint32_t bytes_per_pixel;
+    uint32_t bytes_per_pixel = channels;
     lodepng::State state;
-    state.decoder.color_convert = 1;
+	state.decoder.color_convert = 1;
     state.info_raw.bitdepth = 8;
-    switch(type) {
-        case LCT_RGBA:
-            state.info_raw.colortype = LCT_RGBA;
-            bytes_per_pixel = 4;
-            break;
-        case LCT_RGB:
-        default:
+	switch(channels) {
+        case 3:
             state.info_raw.colortype = LCT_RGB;
-            bytes_per_pixel = 3;
+            break;
+		case 4:
+			state.info_raw.colortype = LCT_RGBA;
+			break;
+        default:
+
             break;
     }
     lodepng_decode(&pixels, &outw, &outh, &state, (unsigned char*)png, png_length);
