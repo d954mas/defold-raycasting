@@ -48,9 +48,9 @@ void castRay(struct Camera* camera, int** walls, double rayAngle
 			*catetY = dist * angleCos;
 			double n;
 			if(hitX){
-				*textureX = modf(camera->x + *catetY,&n);
+				*textureX = modf(camera->y + *catetY,&n);
 			}else{
-				*textureX = modf(camera->y + *catetX,&n);
+				*textureX = modf(camera->x + *catetX,&n);
 			}
 			//printf("cameraX:%f\n",camera->x);
 			//printf("catetX:%f\n",*catetY);
