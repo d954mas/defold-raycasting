@@ -45,7 +45,8 @@ static int clearBufferLua(lua_State* L){
 
 static int loadTextureLua(lua_State* L){
 	dmScript::LuaHBuffer* buffer = dmScript::CheckBuffer(L, 1);
-	loadTexture(buffer, 4);
+	int id = (int)lua_tonumber(L, 2);
+	loadTexture(buffer, id);
 	return 0;
 }
 

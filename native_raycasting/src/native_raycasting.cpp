@@ -12,10 +12,8 @@ static struct Map map;
 static struct Plane plane;
 static struct Texture textures[10];
 
-void loadTexture(dmScript::LuaHBuffer* luaBuffer, int channels){
-	decodeToTexture(luaBuffer->m_Buffer,channels, &textures[0]);
-	printf("width:%d\n", textures[0].width);
-	printf("width:%d\n", (&textures[0])->width);
+void loadTexture(dmScript::LuaHBuffer* luaBuffer, int id){
+	decodeToTexture(luaBuffer->m_Buffer, &textures[id]);
 }
 
 void updateCamera(double x, double y, double angle){
@@ -60,27 +58,50 @@ void castRays(){
 		double endPositionY = camera.y + catetY;
 		currentAngle += rayAngle;
 		//fix fov and aspect here
-		int lineHeight = (int)round(plane.height / perpDist);
-		if(lineHeight < 2){
-			lineHeight = 2;
-		}else if(lineHeight > plane.height){
+		//height is always even
+		int lineHeight = ((int)round(plane.height / perpDist)) & 0xFFFFFFFE;
+		if(lineHeight > plane.height){
 			lineHeight = plane.height;
 		}
-		int halfLineHeight = (int)(lineHeight/2.0 + 0.5);
+		int halfLineHeight = lineHeight/2;
 		int drawStart = halfPlaneHeight - halfLineHeight;
 		int drawEnd =  halfLineHeight + halfPlaneHeight;
 		//draw vert line
-		//int textureId = map.walls[mapY][mapX]-1;
-		int textureId = 0;
-		//Texture *wall = &textures[0];
-		int width = (&textures[0])->width;
-		int pixelX = (int)((width-1.0) * textureX);
-		double wallHeight = halfLineHeight /31.5; //lineHeight /63
+		int textureId = map.walls[mapY][mapX];
+		Texture* texture = &textures[textureId];
+		//	printf("textureId:%d", textureId);
+		int textureWidth = texture->width-1;
+		int pixelX = (int)( textureWidth* textureX);
+		double wallHeight = (double)lineHeight /textureWidth; //lineHeight /63
 		double pixelY = 0;
 		double pixelYAdd = 1.0 / wallHeight;
 		for (int y = drawStart; y <= drawEnd; y++) {
-			setPixel(&buffer, x, y, &(&textures[0])->pixels[(int)pixelY][pixelX]);
+			setPixel(&buffer, x, y, &(texture->pixels[(int)pixelY][pixelX]));
 			pixelY += pixelYAdd;
+		}
+		//draw floor and ceilings
+		double n;
+		for(int y = 0; y < drawStart; y++){
+			double currentDist = (double)halfPlaneHeight / (halfPlaneHeight - y);
+			double weight = currentDist / perpDist;
+			double weight2 = 1.0 - weight;
+			double floorX = (weight * endPositionX + weight2 * camera.x);
+			double floorY = (weight * endPositionY + weight2 * camera.y);
+			int cellX = (int)(floorX);
+			int cellY = (int)(floorY);
+			int floorId = map.floors[cellY][cellX];
+			int ceilId = map.ceils[cellY][cellX];
+			Texture* floorTexture = &textures[floorId];
+			int textureX = (int)(modf(floorX,&n) * floorTexture->width);
+			int textureY = (int)(modf(floorY,&n) * floorTexture->height);
+			Color *color = &(floorTexture->pixels[textureY][textureX]);
+			setPixel(&buffer, x, y, color);
+
+			floorTexture = &textures[ceilId];
+			textureX = (int)(modf(floorX,&n) * floorTexture->width);
+			textureY = (int)(modf(floorY,&n) * floorTexture->height);
+			color = &(floorTexture->pixels[textureY][textureX]);
+			setPixel(&buffer, x, plane.height-y-1, color);
 		}
 	}
 }

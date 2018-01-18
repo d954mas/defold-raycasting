@@ -6,6 +6,8 @@ local InputReceiver = require "libs.input_receiver"
 local ru = require("assets.localization.ru")
 local en = require("assets.localization.en")
 
+local TEXTURES_NUM = 4
+
 
 local function create_url(name) 
 	return msg.url("main:" .. name) 
@@ -25,9 +27,9 @@ end
 
 local function load_textures()
 	print("start loading textures")
-	for i=1, 1 do
+	for i=1, TEXTURES_NUM do
 		local buffer = resource.load("/assets/images/walls/wall" .. i .. ".png")
-		native_raycasting.load_texture(buffer)
+		native_raycasting.load_texture(buffer, i)
 	end	
 end	
 
