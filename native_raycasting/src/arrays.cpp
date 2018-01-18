@@ -19,7 +19,7 @@ int clearArrayInt(int **array, int height){
 }
 
 Color ** createTwoArrayColor(int width, int height){
-	Color **array = (Color**)malloc(height * sizeof(Color));
+	Color **array = (Color**)malloc(height * sizeof(Color*));
 	for (int i = 0; i<height; i++) 
 	{
 		array[i] = (Color*)malloc(sizeof(Color) * width);
