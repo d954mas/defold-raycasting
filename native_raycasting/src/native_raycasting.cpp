@@ -14,6 +14,8 @@ static struct Texture textures[10];
 
 void loadTexture(dmScript::LuaHBuffer* luaBuffer, int channels){
 	decodeToTexture(luaBuffer->m_Buffer,channels, &textures[0]);
+	printf("width:%d\n", textures[0].width);
+	printf("width:%d\n", (&textures[0])->width);
 }
 
 void updateCamera(double x, double y, double angle){
@@ -69,17 +71,16 @@ void castRays(){
 		int drawEnd =  halfLineHeight + halfPlaneHeight;
 		//draw vert line
 		//int textureId = map.walls[mapY][mapX]-1;
-		//Texture *wall = &wallTextures[textureId];
-	//	int pixelX = (int)((wall->width-1) * textureX);
-	//	double wallHeight = halfLineHeight /31.5; //lineHeight /63
-	//	double pixelY = 0;
-		//double pixelYAdd = 1.0 / wallHeight;
-		struct Color color;
-		color.r = 255;
-		color.g = 0;
-		color.b = 0;
+		int textureId = 0;
+		//Texture *wall = &textures[0];
+		int width = (&textures[0])->width;
+		int pixelX = (int)((width-1.0) * textureX);
+		double wallHeight = halfLineHeight /31.5; //lineHeight /63
+		double pixelY = 0;
+		double pixelYAdd = 1.0 / wallHeight;
 		for (int y = drawStart; y <= drawEnd; y++) {
-			setPixel(&buffer, x, y, &color);
+			setPixel(&buffer, x, y, &(&textures[0])->pixels[(int)pixelY][pixelX]);
+			pixelY += pixelYAdd;
 		}
 	}
 }
