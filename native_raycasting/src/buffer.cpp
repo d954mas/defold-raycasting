@@ -14,9 +14,9 @@ void initBuffer(struct Buffer* buffer, int width, int height, dmScript::LuaHBuff
 
 void setPixel(struct Buffer* buffer, int x, int y, Color *color){
 	int id = (y * buffer->width + x) * 3;
-	buffer->stream[id] = color->r;
-	buffer->stream[id + 1] = color->g;
-	buffer->stream[id + 2] = color->b;
+	buffer->stream[id] = color->colors[0];
+	buffer->stream[id + 1] = color->colors[1];
+	buffer->stream[id + 2] = color->colors[2];
 }
 void clearBuffer(struct Buffer* buffer){
 	for(int i=0; i< (buffer->width * buffer->height * 3); i++){

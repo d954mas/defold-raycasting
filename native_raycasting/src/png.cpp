@@ -10,16 +10,16 @@ void decodeToTexture(dmBuffer::HBuffer hBuffer, int channels, struct Texture* te
 	clearArrayColor(texture->pixels, texture->height);
 	texture->width = outW;
 	texture->height = outH;
-	struct Color **pixels = createTwoArrayColor(outW, outH);
+	Color **pixels = createTwoArrayColor(outW, outH);
 	texture->pixels = pixels;
 	int id = 0;
 	for(int y=0; y < outH; y++){
 		for(int x=0; x < outW; x++){
-			struct Color* color = &pixels[outH - y - 1][x];
+			Color* color = &pixels[outH - y - 1][x];
 			//printf("y:%d x:%d",y,x);
-			color->r = decodePixels[id*4];
-			color->g = decodePixels[id*4+1];
-			color->b = decodePixels[id*4+2];
+			color->colors[0] = decodePixels[id*4];
+			color->colors[1] = decodePixels[id*4+1];
+			color->colors[2] = decodePixels[id*4+2];
 			id++;
 		}
 	}
