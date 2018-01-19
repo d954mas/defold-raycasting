@@ -89,6 +89,7 @@ void castRays(){
 			setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
 			pixelY += pixelYAdd;
 		}
+		
 		//draw floor and ceilings
 		double n;
 		int** floors =  map.floors;
@@ -104,14 +105,14 @@ void castRays(){
 			int floorId = floors[cellY][cellX];
 			int ceilId = ceils[cellY][cellX];
 			Texture* floorTexture = &textures[floorId];
-			int textureX = (int)(modf(floorX,&n) * floorTexture->width);
-			int textureY = (int)(modf(floorY,&n) * floorTexture->height);
+			int textureX = (floorX - (int)floorX) * floorTexture->width;
+			int textureY = (floorY - (int)floorY) * floorTexture->height;
 			Color *color = &(floorTexture->pixels[textureY][textureX]);
 			setPixel(&buffer, x, y, color);
 
 			floorTexture = &textures[ceilId];
-			textureX = (int)(modf(floorX,&n) * floorTexture->width);
-			textureY = (int)(modf(floorY,&n) * floorTexture->height);
+		//	textureX = (int)(modf(floorX,&n) * floorTexture->width);
+		//	textureY = (int)(modf(floorY,&n) * floorTexture->height);
 			color = &(floorTexture->pixels[textureY][textureX]);
 			setPixel(&buffer, x, plane.height-y-1, color);
 		}
