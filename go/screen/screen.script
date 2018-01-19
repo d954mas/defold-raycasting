@@ -32,7 +32,7 @@ end
 function update(self, dt)
 	local camera = WORLD.player.camera
 	WORLD.update_camera()
-	--test()
+--	test()
 	--WORLD.player.position.x = LUME.clamp(WORLD.player.position.x, 1.5, 23)
 	--WORLD.player.position.y = LUME.clamp(WORLD.player.position.y, 1.5, 23)
 	--	WORLD.update_camera()

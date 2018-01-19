@@ -85,7 +85,7 @@ void castRays(){
 		double wallHeight = (double)lineHeight /textureWidth; //lineHeight /63
 		double pixelY = 0;
 		double pixelYAdd = 1.0 / wallHeight;
-		for (int y = drawStart; y <= drawEnd; y++) {
+		for (int y = drawStart; y < drawEnd; y++) {
 			setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
 			pixelY += pixelYAdd;
 		}
@@ -111,6 +111,7 @@ void castRays(){
 			setPixel(&buffer, x, y, color);
 
 			floorTexture = &textures[ceilId];
+			//floor and ceil use same width
 		//	textureX = (int)(modf(floorX,&n) * floorTexture->width);
 		//	textureY = (int)(modf(floorY,&n) * floorTexture->height);
 			color = &(floorTexture->pixels[textureY][textureX]);
