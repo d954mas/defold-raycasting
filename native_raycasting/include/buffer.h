@@ -11,7 +11,7 @@ struct Buffer {
 
 void initBuffer(struct Buffer*, int, int, dmScript::LuaHBuffer*);
 void clearBuffer(struct Buffer*);
-static inline void setPixel(struct Buffer* buffer, int x, int y, Color *color){
+inline void setPixel(struct Buffer* buffer, int x, int y, Color *color){
 	int id = (y * buffer->width + x) * 3;
 	uint8_t* stream = buffer->stream;
 	uint8_t* colors = color->colors;

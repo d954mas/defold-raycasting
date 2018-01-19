@@ -2,7 +2,7 @@
 #include "raycasting.h"
 #include "world_structures.h"
 
-static void countStep(int mapX, double startX, double dx, double absDx, int* stepX, double* sx){
+static inline void countStep(int mapX, double startX, double dx, double absDx, int* stepX, double* sx){
 	if (dx>0){
 		*sx = (mapX - startX + 1) * absDx;
 		*stepX = 1;

@@ -1,4 +1,5 @@
 #include <dmsdk/sdk.h>
+#include <stdlib.h>
 #include <math.h>
 #include "world_structures.h"
 #include "buffer.h"
@@ -11,6 +12,7 @@ static struct Buffer buffer;
 static struct Map map;
 static struct Plane plane;
 static struct Texture textures[10];
+static double *PRE_CALC_HEIGHT_DISTANCE;
 
 void loadTexture(dmScript::LuaHBuffer* luaBuffer, int id){
 	decodeToTexture(luaBuffer->m_Buffer, &textures[id]);
@@ -34,6 +36,12 @@ void clearBuffer(){
 
 void updatePlane(int x, int y, int endX, int endY){
 	updatePlane(&plane, x, y, endX, endY);
+	free(PRE_CALC_HEIGHT_DISTANCE);
+	double size = plane.height>>1;
+	PRE_CALC_HEIGHT_DISTANCE = (double *)malloc(sizeof(double) * size);
+	for(int i = 0;  i < size; i++){
+		PRE_CALC_HEIGHT_DISTANCE[i] =  size / (size - i);
+	}
 }
 
 void setMap(lua_State* L){
@@ -59,7 +67,6 @@ void castRays(){
 		currentAngle += rayAngle;
 		//fix fov and aspect here
 		//height is always even
-		
 		int lineHeight = ((int)round(plane.height / perpDist)) & 0xFFFFFFFE;
 		if(lineHeight > plane.height){
 			lineHeight = plane.height;
@@ -78,34 +85,35 @@ void castRays(){
 		double wallHeight = (double)lineHeight /textureWidth; //lineHeight /63
 		double pixelY = 0;
 		double pixelYAdd = 1.0 / wallHeight;
-		
 		for (int y = drawStart; y <= drawEnd; y++) {
-		//	setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
+			setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
 			pixelY += pixelYAdd;
 		}
 		//draw floor and ceilings
 		double n;
+		int** floors =  map.floors;
+		int** ceils =  map.ceils;
 		for(int y = 0; y < drawStart; y++){
-			double currentDist = (double)halfPlaneHeight / (halfPlaneHeight - y);
+			double currentDist = PRE_CALC_HEIGHT_DISTANCE[y];
 			double weight = currentDist / perpDist;
 			double weight2 = 1.0 - weight;
 			double floorX = (weight * endPositionX + weight2 * camera.x);
 			double floorY = (weight * endPositionY + weight2 * camera.y);
 			int cellX = (int)(floorX);
 			int cellY = (int)(floorY);
-			int floorId = map.floors[cellY][cellX];
-			int ceilId = map.ceils[cellY][cellX];
+			int floorId = floors[cellY][cellX];
+			int ceilId = ceils[cellY][cellX];
 			Texture* floorTexture = &textures[floorId];
 			int textureX = (int)(modf(floorX,&n) * floorTexture->width);
 			int textureY = (int)(modf(floorY,&n) * floorTexture->height);
 			Color *color = &(floorTexture->pixels[textureY][textureX]);
-			//setPixel(&buffer, x, y, color);
+			setPixel(&buffer, x, y, color);
 
 			floorTexture = &textures[ceilId];
 			textureX = (int)(modf(floorX,&n) * floorTexture->width);
 			textureY = (int)(modf(floorY,&n) * floorTexture->height);
 			color = &(floorTexture->pixels[textureY][textureX]);
-			//setPixel(&buffer, x, plane.height-y-1, color);
+			setPixel(&buffer, x, plane.height-y-1, color);
 		}
 	}
 }

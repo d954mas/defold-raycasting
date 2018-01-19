@@ -9,7 +9,8 @@ void initBuffer(struct Buffer* buffer, int width, int height, dmScript::LuaHBuff
 	uint32_t size_ignored = 0;
 	uint32_t components = 0;
 	uint32_t stride = 0;
-	dmBuffer::Result r = dmBuffer::GetStream(hBuffer, dmHashString64("rgb"), (void**)&buffer->stream, &size_ignored, &components, &stride);
+	dmBuffer::Result r = dmBuffer::GetBytes(hBuffer, (void**)&buffer->stream, &size_ignored);
+	//dmBuffer::Result r = dmBuffer::GetStream(hBuffer, dmHashString64("rgb"),(void**)&buffer->stream , &size_ignored, &components, &stride);
 }
 
 void clearBuffer(struct Buffer* buffer){
