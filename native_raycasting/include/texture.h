@@ -11,4 +11,14 @@ struct Texture {
 	Color **pixels;
 };
 
+struct Sprite
+{
+	double x;
+	double y;
+	int textureId;
+	double dx;
+	double dy;
+	double distance;
+};
+
 void textureFromPixels(char* pixels, struct Texture* texture, int channels);

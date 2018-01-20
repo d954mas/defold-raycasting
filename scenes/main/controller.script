@@ -7,7 +7,7 @@ local ru = require("assets.localization.ru")
 local en = require("assets.localization.en")
 
 local TEXTURES_NUM = 4
-
+local SPRITES_NUM = 3
 
 local function create_url(name) 
 	return msg.url("main:" .. name) 
@@ -26,10 +26,16 @@ local function toggle_profiler(self, action_id, action)
 end
 
 local function load_textures()
-	print("start loading textures")
 	for i=1, TEXTURES_NUM do
 		local buffer = resource.load("/assets/images/walls/wall" .. i .. ".png")
 		native_raycasting.load_texture(buffer, i)
+	end	
+end
+
+local function load_sprites()
+	for i=1, SPRITES_NUM do
+		local buffer = resource.load("/assets/images/sprites/sprite" .. i .. ".png")
+		native_raycasting.load_sprite(buffer, i)
 	end	
 end	
 
@@ -37,6 +43,7 @@ function init(self)
 	math.randomseed(os.time())
 	--msg.post("@system:", "toggle_profile")	
 	load_textures()
+	load_sprites()
 	input.acquire()
 	self.input_receiver = InputReceiver.new()
 	self.input_receiver:add(hash("back_scene"), back_scene, true)

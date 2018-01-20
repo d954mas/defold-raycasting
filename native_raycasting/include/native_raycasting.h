@@ -11,3 +11,5 @@ void castSingleRay(double, double *, double *,
 	double *, int *, int *, double *);
 void castRays();
 void loadTexture(dmScript::LuaHBuffer*, int);
+void loadSprite(dmScript::LuaHBuffer*, int);
+void addSprite(double, double, int);

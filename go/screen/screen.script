@@ -4,10 +4,41 @@ local SCREEN = require "libs.screen"
 local CONST = require "libs.constants"
 local RAYS = require "libs.rays"
 local LUME = require "libs.lume"
-local WALLS = require "assets.walls.walls"
 local MAP = WORLD.map
 
 local MATH_CEIL = math.ceil
+
+local function add_sprites()
+	local sprites = {
+		{18, 18, 3},--green light in front of playerstart
+		--green lights in every room
+	--[[	{18.5,4.5, 3},
+		{10.0,4.5, 3},
+		{10.0,12.5,3},
+		{3.5, 6.5, 3},
+		{3.5, 20.5,3},
+		{3.5, 14.5,3},
+		{14.5,20.5,3},
+
+		--row of pillars in front of wall: fisheye test
+		{18.5, 10.5, 2},
+		{18.5, 11.5, 2},
+		{18.5, 12.5, 2},
+
+		--some barrels around the map
+		{21.5, 1.5, 1},
+		{15.5, 1.5, 1},
+		{16.0, 1.8, 1},
+		{16.2, 1.2, 1},
+		{3.5,  2.5, 1},
+		{9.5, 15.5, 1},
+		{10.0, 15.1,1},
+		{10.5, 15.8,1},--]]
+	}
+	for _,sprite in ipairs(sprites) do
+		native_raycasting.add_sprite(sprite[1], sprite[2], sprite[3])
+	end	
+end	
 
 function init(self)
 	self.resource_path = go.get("#model", "texture0")
@@ -16,8 +47,11 @@ function init(self)
 	local scale = vmath.vector3(50 * SCREEN.WIDTH, 50 * SCREEN.HEIGHT, 1)
 	go.set_scale(scale)
 	local camera = WORLD.player.camera
-	native_raycasting.set_map(WORLD.map);
+	native_raycasting.set_map(WORLD.map)
+	add_sprites()
 end
+
+
 
 local function test()
 	local camera = WORLD.player.camera
@@ -32,7 +66,7 @@ end
 function update(self, dt)
 	local camera = WORLD.player.camera
 	WORLD.update_camera()
---	test()
+	--test()
 	--WORLD.player.position.x = LUME.clamp(WORLD.player.position.x, 1.5, 23)
 	--WORLD.player.position.y = LUME.clamp(WORLD.player.position.y, 1.5, 23)
 	--	WORLD.update_camera()
@@ -41,7 +75,7 @@ function update(self, dt)
 	native_raycasting.cast_rays()
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
-	print("time:" .. os.clock() - time)
+	--print("time:" .. os.clock() - time)
 end
 
 
