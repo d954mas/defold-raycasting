@@ -73,7 +73,7 @@ void castSingleRay(double rayAngle, double *perpDist, double *catetX,
 
 static bool sortSprites(const Sprite &a, const Sprite &b)
 {
-	return a.distance < b.distance;
+	return a.distance > b.distance;
 }
 
 static inline void countVertY(double dist, int* height, int* drawStart, int* drawEnd){
@@ -156,10 +156,10 @@ void castRays(){
 		double dy = sprite->y - camera.y;
 		printf("dx:%f dy:%f\n",dx,dy);
 		//rotate
-		double rotatedDx = dx * cos(cameraAngle) + dy * sin(cameraAngle);
-		double rotatedDy = - dx * sin(cameraAngle) + dy * cos(cameraAngle);
+		double rotatedDx = -dx * cos(cameraAngle) + dy * sin(cameraAngle);
+		double rotatedDy = dx * sin(cameraAngle) + dy * cos(cameraAngle);
 		
-		sprite->dx = -rotatedDy;
+		sprite->dx = rotatedDy;
 		sprite->dy = -rotatedDx;
 		//sqrt can be avoid
 		sprite->distance = sqrt(dx*dx + dy*dy);
@@ -171,7 +171,7 @@ void castRays(){
 	for (int i = 0; i < sprites.size(); i++)
 	{
 		Sprite* sprite = &sprites[i];
-		printf("rotated x:%f y:%f\n",sprite->dx,sprite->dy);
+		//printf("rotated x:%f y:%f\n",sprite->dx,sprite->dy);
 		if(sprite->dy<=0){
 			continue;
 		}
@@ -182,12 +182,16 @@ void castRays(){
 		int centerX = plane.width/2 - (sprite->dx*lineHeight);
 		int startX = centerX - (lineHeight>>1);
 		int endX = centerX + (lineHeight>>1);
-		//printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
+		printf("centerX x:%f startX:%f endX:%f\n",centerX,startX,endX);
+	    printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
 		Texture* texture = &spritesTextures[sprite->textureId];
 		Color** pixels = texture->pixels;
 		double pixelYadd = (texture->height-1)/(double) lineHeight;
 		double pixelX=0;
 		double addX = (double)(texture->width-1)/(endX-startX);
+		if(startX<0){
+			pixelX = pixelYadd * - startX;
+		}	
 		if(startX < 0){
 			startX = 0;
 		}
@@ -195,8 +199,11 @@ void castRays(){
 			endX = plane.endX-1;
 		}
 		for(int x = startX; x<=endX; x++){
-			drawVertLine(x, drawStart, drawEnd, pixelYadd, texture->pixels, (int)pixelX);
-			pixelX+=addX;
+			if(sprite->dy <=distanceBuffer[x]){
+				drawVertLine(x, drawStart, drawEnd, pixelYadd, texture->pixels, (int)pixelX);
+				pixelX+=addX;
+			}
+			
 		}
 	}
 }

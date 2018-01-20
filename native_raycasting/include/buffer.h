@@ -16,6 +16,9 @@ inline void setPixel(struct Buffer* buffer, int x, int y, Color *color){
 	uint8_t* stream = buffer->stream;
 	uint8_t* colors = color->colors;
 	//memcpy(&stream[id], &colors[0], 3);
+	if(colors[0] == 0xFF){
+		return;
+	}
 	stream[id] = colors[0];
 	stream[id + 1] = colors[1];
 	stream[id + 2] = colors[2];

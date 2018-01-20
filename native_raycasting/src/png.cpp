@@ -20,6 +20,7 @@ void decodeToTexture(dmBuffer::HBuffer hBuffer, struct Texture* texture){
 			color->colors[0] = decodePixels[id*4];
 			color->colors[1] = decodePixels[id*4+1];
 			color->colors[2] = decodePixels[id*4+2];
+			color->colors[3] = decodePixels[id*4+3];
 			id++;
 		}
 	}
@@ -40,7 +41,6 @@ unsigned char* decodeChar(char* png, uint32_t pngLen, uint32_t* pngW, uint32_t* 
     uint32_t outw = 0;
     uint32_t outh = 0;
     lodepng::State state;
-	state.decoder.color_convert = 1;
     state.info_raw.bitdepth = 8;
     state.info_raw.colortype = LCT_RGBA;
 	lodepng_decode(&pixels, &outw, &outh, &state, (unsigned char*)png, pngLen);

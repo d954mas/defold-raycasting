@@ -12,7 +12,8 @@ local function add_sprites()
 	local sprites = {
 		{18, 18, 3},--green light in front of playerstart
 		--green lights in every room
-	--[[	{18.5,4.5, 3},
+		--[[--]]
+		{18.5,4.5, 3},
 		{10.0,4.5, 3},
 		{10.0,12.5,3},
 		{3.5, 6.5, 3},
