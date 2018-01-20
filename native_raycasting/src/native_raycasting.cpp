@@ -145,7 +145,7 @@ void castRays(){
 	}
 	//draw sprites
 	//add 0.5 to get center
-	double cameraAngle = camera.angle - TWO_PI / 4.0; 
+	double cameraAngle = TWO_PI - (camera.angle - TWO_PI / 2.0); 
 	for (int i = 0; i < sprites.size(); i++)
 	{
 		Sprite* sprite = &sprites[i];
@@ -155,10 +155,10 @@ void castRays(){
 		printf("dx:%f dy:%f\n",dx,dy);
 		//rotate
 		dx = dx * cos(cameraAngle) + dy * sin(cameraAngle);
-		dy = -dx* sin(cameraAngle) + dy * cos(cameraAngle);
+		dy = dx * sin(cameraAngle) + dy * cos(cameraAngle);
 		
 		sprite->dx = dx;
-		sprite->dy = dy;
+		sprite->dy = -dy;
 		//sqrt can be avoid
 		sprite->distance = sqrt(dx*dx + dy*dy);
 	}
@@ -169,23 +169,31 @@ void castRays(){
 	for (int i = 0; i < sprites.size(); i++)
 	{
 		Sprite* sprite = &sprites[i];
-		printf("x:%f y:%f\n",sprite->dx,sprite->dy);
+		printf("ratated x:%f y:%f\n",sprite->dx,sprite->dy);
 	//	printf("fov:%f\n",camera.fov);
 		if(sprite->dx<-camera.fov/2 or sprite->dx>camera.fov/2 or sprite->dy<=0){
 			continue;
 		}
-		//	printf("distance:%f\n",sprite->dy);
+		printf("distance:%f\n",sprite->distance);
 		int lineHeight, drawStart,drawEnd;
-		countVertY(perpDist,&lineHeight,&drawStart,&drawEnd);
+		countVertY(sprite->distance,&lineHeight,&drawStart,&drawEnd);
 		sprite->dx += camera.fov/2.0;
 		int startX = sprite->dx/camera.fov*plane.height;
 		int endX = startX + lineHeight;
+		if(endX > plane.endX-1){
+			endX = plane.endX-1;
+		}
 		
 		Texture* texture = &spritesTextures[sprite->textureId];
 		Color** pixels = texture->pixels;
 		double pixelYadd = (texture->height-1)/(double) lineHeight;
+		double pixelX=0;
+		double addX = (double)(texture->width-1)/(endX-startX);
 		for(int x = startX; x<=endX; x++){
-			drawVertLine(x, drawStart, drawEnd, pixelYadd, texture->pixels, 0);
+			drawVertLine(x, drawStart, drawEnd, pixelYadd, texture->pixels, (int)pixelX);
+			printf("addX:%f\n",addX);
+			printf("pixelX:%f\n",pixelX);
+			pixelX+=addX;
 		}
 	}
 }
