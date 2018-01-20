@@ -1,5 +1,6 @@
+#define PI       3.14159265358979323846
 #define TWO_PI       3.14159265358979323846 * 2
-
+#define HALF_PI      PI / 2.0
 #include <dmsdk/sdk.h>
 #include <stdlib.h>
 #include <math.h>
@@ -145,7 +146,7 @@ void castRays(){
 	}
 	//draw sprites
 	//add 0.5 to get center
-	double cameraAngle = TWO_PI - (camera.angle - TWO_PI / 2.0); 
+	double cameraAngle = TWO_PI + (camera.angle - HALF_PI); 
 	printf("cameraAngle:%f\n",cameraAngle);
 	for (int i = 0; i < sprites.size(); i++)
 	{
@@ -158,8 +159,8 @@ void castRays(){
 		double rotatedDx = dx * cos(cameraAngle) + dy * sin(cameraAngle);
 		double rotatedDy = - dx * sin(cameraAngle) + dy * cos(cameraAngle);
 		
-		sprite->dx = -rotatedDx;
-		sprite->dy = -rotatedDy;
+		sprite->dx = -rotatedDy;
+		sprite->dy = -rotatedDx;
 		//sqrt can be avoid
 		sprite->distance = sqrt(dx*dx + dy*dy);
 	}
@@ -171,31 +172,28 @@ void castRays(){
 	{
 		Sprite* sprite = &sprites[i];
 		printf("rotated x:%f y:%f\n",sprite->dx,sprite->dy);
-	//	printf("fov:%f\n",camera.fov);
-		if(sprite->dx<-camera.fov/2 or sprite->dx>camera.fov/2 or sprite->dy<=0){
+		if(sprite->dy<=0){
 			continue;
 		}
+		
 		int lineHeight, drawStart,drawEnd;
-		countVertY(sprite->dy,&lineHeight,&drawStart,&drawEnd);
-		sprite->dx += camera.fov/2.0;
-		int centerX = sprite->dx/camera.fov*plane.width;
-		printf("centerX:%d\n",centerX);
+		countVertY(sprite->dy+1,&lineHeight,&drawStart,&drawEnd);
+		//sprite->dx += camera.fov/2.0;
+		int centerX = plane.width/2 - (sprite->dx*lineHeight);
 		int startX = centerX - (lineHeight>>1);
 		int endX = centerX + (lineHeight>>1);
-		printf("startX%d\n",startX);
-		printf("endX%d\n",endX);
+		//printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
+		Texture* texture = &spritesTextures[sprite->textureId];
+		Color** pixels = texture->pixels;
+		double pixelYadd = (texture->height-1)/(double) lineHeight;
+		double pixelX=0;
+		double addX = (double)(texture->width-1)/(endX-startX);
 		if(startX < 0){
 			startX = 0;
 		}
 		if(endX > plane.endX-1){
 			endX = plane.endX-1;
 		}
-		
-		Texture* texture = &spritesTextures[sprite->textureId];
-		Color** pixels = texture->pixels;
-		double pixelYadd = (texture->height-1)/(double) lineHeight;
-		double pixelX=0;
-		double addX = (double)(texture->width-1)/(endX-startX);
 		for(int x = startX; x<=endX; x++){
 			drawVertLine(x, drawStart, drawEnd, pixelYadd, texture->pixels, (int)pixelX);
 			pixelX+=addX;

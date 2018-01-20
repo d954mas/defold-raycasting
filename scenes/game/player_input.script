@@ -2,19 +2,19 @@ local WORLD = require "libs.world"
 local InputReceiver = require "libs.input_receiver"
 
 local function up(self)
-	WORLD.player.position.y = WORLD.player.position.y + 0.25
+	WORLD.player.position.y = WORLD.player.position.y + 0.1
 end	
 
 local function down(self)
-	WORLD.player.position.y = WORLD.player.position.y - 0.25
+	WORLD.player.position.y = WORLD.player.position.y - 0.1
 end	
 
 local function left(self)
-	WORLD.player.position.x = WORLD.player.position.x - 0.25
+	WORLD.player.position.x = WORLD.player.position.x - 0.1
 end	
 
 local function right(self)
-	WORLD.player.position.x = WORLD.player.position.x + 0.25
+	WORLD.player.position.x = WORLD.player.position.x + 0.1
 end	
 
 local rot = 3.1415/40

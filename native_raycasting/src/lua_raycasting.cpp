@@ -62,6 +62,7 @@ static int addSpriteLua(lua_State* L){
 	double y = lua_tonumber(L, 2);
 	int id = (int)lua_tonumber(L, 3);
 	addSprite(x, y, id);
+	return 0;
 }
 
 static int setMapLua(lua_State* L){
