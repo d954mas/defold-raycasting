@@ -75,12 +75,30 @@ static bool sortSprites(const Sprite &a, const Sprite &b)
 	return a.distance < b.distance;
 }
 
+static inline void countVertY(double dist, int* height, int* drawStart, int* drawEnd){
+	int lineHeight = ((int)round(plane.height / dist)) & 0xFFFFFFFE;
+	if(lineHeight > plane.height){
+		lineHeight = plane.height;
+	}
+	int halfLineHeight = lineHeight>>1;
+	*drawStart = plane.halfHeight - halfLineHeight;
+	*drawEnd =  plane.halfHeight + halfLineHeight;
+	*height = lineHeight;
+}
+
+static inline void drawVertLine(int x, int drawStart, int drawEnd, double pixelYAdd, Color** pixels, int pixelX){
+	double pixelY = 0;
+	for (int y = drawStart; y < drawEnd; y++) {
+		setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
+		pixelY += pixelYAdd;
+	}
+}
+
 void castRays(){
 	double currentAngle = - camera.fov / 2.0;
 	double rayAngle = camera.fov/plane.width;
 	double perpDist, catetX, catetY, textureX;
 	int mapX, mapY;
-	int halfPlaneHeight = plane.height >> 1;
 	for (int x = 0; x < plane.width; x++){
 		castSingleRay(currentAngle, &perpDist, &catetX, &catetY, &mapX, &mapY, &textureX);
 		distanceBuffer[x] = perpDist;
@@ -89,28 +107,13 @@ void castRays(){
 		currentAngle += rayAngle;
 		//fix fov and aspect here
 		//height is always even
-		int lineHeight = ((int)round(plane.height / perpDist)) & 0xFFFFFFFE;
-		if(lineHeight > plane.height){
-			lineHeight = plane.height;
-		}
-		
-		int halfLineHeight = lineHeight>>1;
-		int drawStart = halfPlaneHeight - halfLineHeight;
-		int drawEnd =  halfLineHeight + halfPlaneHeight;
-		//draw vert line
+		int lineHeight, drawStart,drawEnd;
+		countVertY(perpDist,&lineHeight,&drawStart,&drawEnd);
 		int textureId = map.walls[mapY][mapX];
 		Texture* texture = &textures[textureId];
-		Color** pixels = texture->pixels;
-		//	printf("textureId:%d", textureId);
-		int textureWidth = texture->width-1;
-		int pixelX = (int)( textureWidth* textureX);
-		double wallHeight = (double)lineHeight /textureWidth; //lineHeight /63
-		double pixelY = 0;
-		double pixelYAdd = 1.0 / wallHeight;
-		for (int y = drawStart; y < drawEnd; y++) {
-			setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
-			pixelY += pixelYAdd;
-		}
+		int pixelX = (int)( (texture->width-1)* textureX);
+		double pixelYadd = (texture->height-1)/(double) lineHeight;
+		drawVertLine(x, drawStart, drawEnd, pixelYadd, texture->pixels, pixelX);
 		
 		//draw floor and ceilings
 		double n;
@@ -149,9 +152,11 @@ void castRays(){
 		//translate
 		double dx = sprite->x - camera.x;
 		double dy = sprite->y - camera.y;
+		printf("dx:%f dy:%f\n",dx,dy);
 		//rotate
-		dx = dx * cos(camera.angle) + dy * sin(camera.angle);
-		dy = -dx* sin(camera.angle) + dy * cos(camera.angle);
+		dx = dx * cos(cameraAngle) + dy * sin(cameraAngle);
+		dy = -dx* sin(cameraAngle) + dy * cos(cameraAngle);
+		
 		sprite->dx = dx;
 		sprite->dy = dy;
 		//sqrt can be avoid
@@ -165,32 +170,22 @@ void castRays(){
 	{
 		Sprite* sprite = &sprites[i];
 		printf("x:%f y:%f\n",sprite->dx,sprite->dy);
-		printf("fov:%f\n",camera.fov);
+	//	printf("fov:%f\n",camera.fov);
 		if(sprite->dx<-camera.fov/2 or sprite->dx>camera.fov/2 or sprite->dy<=0){
 			continue;
 		}
-		printf("distance:%f\n",sprite->dy);
-		int startX = 0;
-		int endX = 100;
-		int lineHeight = ((int)round(plane.height / sprite->distance));
-		if(lineHeight > plane.height){
-			lineHeight = plane.height;
-		}
-		int halfLineHeight = lineHeight>>1;
-		int drawStart = halfPlaneHeight - halfLineHeight;
-		int drawEnd =  halfLineHeight + halfPlaneHeight;
+		//	printf("distance:%f\n",sprite->dy);
+		int lineHeight, drawStart,drawEnd;
+		countVertY(perpDist,&lineHeight,&drawStart,&drawEnd);
+		sprite->dx += camera.fov/2.0;
+		int startX = sprite->dx/camera.fov*plane.height;
+		int endX = startX + lineHeight;
+		
 		Texture* texture = &spritesTextures[sprite->textureId];
 		Color** pixels = texture->pixels;
-		int textureWidth = texture->width-1;
-		int pixelX = 0;
-		double wallHeight = (double)lineHeight /textureWidth;
-		double pixelYAdd = 1.0 / wallHeight;
+		double pixelYadd = (texture->height-1)/(double) lineHeight;
 		for(int x = startX; x<=endX; x++){
-			double pixelY = 0;
-			for (int y = drawStart; y < drawEnd; y++) {
-				setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
-				pixelY += pixelYAdd;
-			}
+			drawVertLine(x, drawStart, drawEnd, pixelYadd, texture->pixels, 0);
 		}
 	}
 }

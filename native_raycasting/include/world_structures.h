@@ -22,6 +22,7 @@ struct Plane {
 	int endY;
 	int width;
 	int height;
+	int halfHeight;
 };
 
 void updateCamera(struct Camera*, double, double, double);
