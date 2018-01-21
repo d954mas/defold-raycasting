@@ -4,7 +4,7 @@ struct Camera {
 	double x;
 	double y;
 	double angle;
-	double fov;
+	double fov=3.1415/2.0;
 };
 
 struct Map {
