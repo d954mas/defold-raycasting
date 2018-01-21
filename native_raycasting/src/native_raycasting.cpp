@@ -177,7 +177,7 @@ void castRays(){
 			setPixel(&buffer, x, plane.height - y-10, color);
 		}
 	}
-	/*
+	
 	//draw sprites
 	//add 0.5 to get center
 	double cameraAngle = TWO_PI - (camera.angle - HALF_PI); 
@@ -211,7 +211,7 @@ void castRays(){
 		
 		int lineHeight, drawStart,drawEnd;
 		double pixelY, pixelYAdd;
-		countVertY(perpDist,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
+		countVertY(sprite->dy,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
 		int halfLineHeight = lineHeight>>1;
 		//sprite->dx += camera.fov/2.0;
 		int centerX = halfPlaneWidth - (sprite->dx*lineHeight);
@@ -237,5 +237,5 @@ void castRays(){
 				pixelX+=addX;
 			}
 		}
-	}*/
+	}
 }
