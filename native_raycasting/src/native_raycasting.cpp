@@ -73,7 +73,7 @@ void castSingleRay(double rayAngle, double *perpDist, double *catetX,
 
 static bool sortSprites(const Sprite &a, const Sprite &b)
 {
-	return a.distance > b.distance;
+	return a.dy > b.dy;
 }
 
 static inline void countVertY(double dist, int* height, int* drawStart, int* drawEnd){
@@ -146,27 +146,26 @@ void castRays(){
 	}
 	//draw sprites
 	//add 0.5 to get center
-	double cameraAngle = TWO_PI + (camera.angle - HALF_PI); 
-	printf("cameraAngle:%f\n",cameraAngle);
+	double cameraAngle = TWO_PI - (camera.angle - HALF_PI); 
+	//printf("cameraAngle:%f\n",cameraAngle);
+	double cameraCos = cos(cameraAngle);
+	double cameraSin = sin(cameraAngle);
 	for (int i = 0; i < sprites.size(); i++)
 	{
 		Sprite* sprite = &sprites[i];
 		//translate
 		double dx = sprite->x - camera.x;
 		double dy = sprite->y - camera.y;
-		printf("dx:%f dy:%f\n",dx,dy);
+		//printf("dx:%f dy:%f\n",dx,dy);
 		//rotate
-		double rotatedDx = -dx * cos(cameraAngle) + dy * sin(cameraAngle);
-		double rotatedDy = dx * sin(cameraAngle) + dy * cos(cameraAngle);
-		
-		sprite->dx = rotatedDy;
-		sprite->dy = -rotatedDx;
-		//sqrt can be avoid
-		sprite->distance = sqrt(dx*dx + dy*dy);
+		double rotatedDx =- dx * cameraSin + dy * cameraCos;
+		double rotatedDy = dx * cameraCos + dy * cameraSin; 
+		sprite->dx = rotatedDx;
+		sprite->dy = rotatedDy;
 	}
 	std::sort(sprites.begin(), sprites.end(), sortSprites);
 
-
+	int halfPlaneWidth =  plane.width>>1;
 	//printf("cameraAngle:%f", cameraAngle);
 	for (int i = 0; i < sprites.size(); i++)
 	{
@@ -177,13 +176,13 @@ void castRays(){
 		}
 		
 		int lineHeight, drawStart,drawEnd;
-		countVertY(sprite->dy+1,&lineHeight,&drawStart,&drawEnd);
+		countVertY(sprite->dy,&lineHeight,&drawStart,&drawEnd);
+		int halfLineHeight = lineHeight>>1;
 		//sprite->dx += camera.fov/2.0;
-		int centerX = plane.width/2 - (sprite->dx*lineHeight);
-		int startX = centerX - (lineHeight>>1);
-		int endX = centerX + (lineHeight>>1);
-		printf("centerX x:%f startX:%f endX:%f\n",centerX,startX,endX);
-	    printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
+		int centerX = halfPlaneWidth - (sprite->dx*lineHeight);
+		int startX = centerX - halfLineHeight;
+		int endX = centerX + halfLineHeight;
+	   // printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
 		Texture* texture = &spritesTextures[sprite->textureId];
 		Color** pixels = texture->pixels;
 		double pixelYadd = (texture->height-1)/(double) lineHeight;

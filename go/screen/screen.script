@@ -12,7 +12,7 @@ local function add_sprites()
 	local sprites = {
 		{18, 18, 3},--green light in front of playerstart
 		--green lights in every room
-		--[[--]]
+		--[[ --]]
 		{18.5,4.5, 3},
 		{10.0,4.5, 3},
 		{10.0,12.5,3},
@@ -76,7 +76,7 @@ function update(self, dt)
 	native_raycasting.cast_rays()
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
-	--print("time:" .. os.clock() - time)
+	print("time:" .. os.clock() - time)
 end
 
 

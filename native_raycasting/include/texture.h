@@ -18,7 +18,6 @@ struct Sprite
 	int textureId;
 	double dx;
 	double dy;
-	double distance;
 };
 
 void textureFromPixels(char* pixels, struct Texture* texture, int channels);
