@@ -76,23 +76,36 @@ static bool sortSprites(const Sprite &a, const Sprite &b)
 	return a.dy > b.dy;
 }
 
-static inline void countVertY(double dist, int* height, int* drawStart, int* drawEnd){
-	int lineHeight = ((int)round(plane.height / dist)) & 0xFFFFFFFE;
+static inline void countVertY(double dist, int* height, int* drawStart, int* drawEnd, double* pixelY, double* pixelYAdd){
+	int lineHeight = ((int)round(plane.height / dist)) & 0xFFFFFFFE; //must be even
+	*pixelYAdd = 1.0/(lineHeight-1);
 	if(lineHeight > plane.height){
+		int halfLineHeight = lineHeight>>1;
+		*pixelY = *pixelYAdd *  ((lineHeight - plane.height)>>1);
 		lineHeight = plane.height;
+	}else{
+		*pixelY = 0;
 	}
 	int halfLineHeight = lineHeight>>1;
 	*drawStart = plane.halfHeight - halfLineHeight;
-	*drawEnd =  plane.halfHeight + halfLineHeight;
+	*drawEnd =  plane.halfHeight + halfLineHeight - 1;
 	*height = lineHeight;
 }
 
-static inline void drawVertLine(int x, int drawStart, int drawEnd, double pixelYAdd, Color** pixels, int pixelX){
-	double pixelY = 0;
+static inline void drawVertLine(int x, int drawStart, int drawEnd,double pixelY, double pixelYAdd, Color** pixels, int pixelX){
+	//printf("drawStart:%d drawEnd:%d\n", drawStart, drawEnd);
 	for (int y = drawStart; y < drawEnd; y++) {
 		setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
 		pixelY += pixelYAdd;
 	}
+}
+
+static inline void drawWall(int x, int drawStart, int drawEnd, double pixelY, double pixelYAdd, double textureX, int textureId){
+	Texture* texture = &textures[textureId];
+	int pixelX = (int)( (texture->width-1)* textureX);
+	pixelY = pixelY * (texture->height-1);
+	pixelYAdd = pixelYAdd * (texture->height-1);
+	drawVertLine(x, drawStart, drawEnd, pixelY, pixelYAdd, texture->pixels, pixelX);
 }
 
 void castRays(){
@@ -107,17 +120,16 @@ void castRays(){
 		double endPositionY = camera.y + catetY;
 		currentAngle += rayAngle;
 		//fix fov and aspect here
-		//height is always even
+		//draw wall
 		int lineHeight, drawStart,drawEnd;
-		countVertY(perpDist,&lineHeight,&drawStart,&drawEnd);
+		double pixelY, pixelYAdd;
+		countVertY(perpDist,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
 		int textureId = map.walls[mapY][mapX];
-		Texture* texture = &textures[textureId];
-		int pixelX = (int)( (texture->width-1)* textureX);
-		double pixelYadd = (texture->height-1)/(double) lineHeight;
-		drawVertLine(x, drawStart, drawEnd, pixelYadd, texture->pixels, pixelX);
+		//printf("pixely:%f addY:%f\n", pixelY, pixelYAdd); 
+		drawWall(x,drawStart, drawEnd, pixelY, pixelYAdd, textureX, textureId);
 		
 		//draw floor and ceilings
-		double n;
+		/*double n;
 		int** floors =  map.floors;
 		int** ceils =  map.ceils;
 		for(int y = 0; y < drawStart; y++){
@@ -203,6 +215,6 @@ void castRays(){
 				pixelX+=addX;
 			}
 			
-		}
+		}*/
 	}
 }

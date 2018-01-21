@@ -36,10 +36,10 @@ void setCameraFov(struct Camera* camera, double fov){
 void updatePlane(struct Plane* plane, int x, int y, int endX, int endY){
 	plane->x = x;
 	plane->y = y;
-	plane->endX = endX;
-	plane->endY = endY;
-	plane->width = endX - x;
-	plane->height = endY - y;
+	plane->endX = endX - 1;
+	plane->endY = endY - 1;
+	plane->width = endX - x + 1;
+	plane->height = endY - y + 1;
 	plane->halfHeight = plane->height>>1;
 }
 

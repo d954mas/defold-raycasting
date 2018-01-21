@@ -16,10 +16,10 @@ struct Map {
 };
 
 struct Plane {
-	int x;
-	int y;
-	int endX;
-	int endY;
+	int x; //inclusicve
+	int y; //inclusicve
+	int endX; //inclusicve
+	int endY; //inclusicve
 	int width;
 	int height;
 	int halfHeight;
