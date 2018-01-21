@@ -108,6 +108,7 @@ static inline void drawVertLine(int x, int drawStart, int drawEnd,double pixelY,
 	for (int y = drawStart; y < drawEnd; y++) {
 		setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
 		pixelY += pixelYAdd;
+		//printf("pixelY:%f\n", pixelY);
 	}
 }
 
@@ -174,7 +175,7 @@ void castRays(){
 		//	textureY = (int)(modf(floorY,&n) * floorTexture->height);
 			color = &(floorTexture->pixels[textureY][textureX]);
 		//printf("y:%d\n",plane.height-y-1);
-			setPixel(&buffer, x, plane.height - y-10, color);
+			setPixel(&buffer, x, plane.height - y-3, color);
 		}
 	}
 	
@@ -212,18 +213,21 @@ void castRays(){
 		int lineHeight, drawStart,drawEnd;
 		double pixelY, pixelYAdd;
 		countVertY(sprite->dy,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
+		Texture* texture = &spritesTextures[sprite->textureId];
+		pixelY = pixelY * (texture->height-1);
+		pixelYAdd = pixelYAdd * (texture->height-1);
 		int halfLineHeight = lineHeight>>1;
 		//sprite->dx += camera.fov/2.0;
 		int centerX = halfPlaneWidth - (sprite->dx*lineHeight);
 		int startX = centerX - halfLineHeight;
 		int endX = centerX + halfLineHeight;
 	   // printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
-		Texture* texture = &spritesTextures[sprite->textureId];
+		
 		Color** pixels = texture->pixels;
 		double pixelX=0;
 		double addX = (double)(texture->width-1)/(endX-startX);
 		if(startX<0){
-			pixelX = pixelYAdd * - startX;
+			pixelX = addX * -startX;
 		}	
 		if(startX < 0){
 			startX = 0;
@@ -231,11 +235,13 @@ void castRays(){
 		if(endX > plane.endX-1){
 			endX = plane.endX-1;
 		}
-		for(int x = startX; x<=endX; x++){
+		//printf("pixelY%f addY:%f\n",pixelY,pixelYAdd);
+		for(int x = startX; x<endX; x++){
 			if(sprite->dy <=distanceBuffer[x]){
 				drawVertLine(x, drawStart, drawEnd, pixelY, pixelYAdd, texture->pixels, (int)pixelX);
-				pixelX+=addX;
+				//printf("pixelX:%f\n",pixelX);
 			}
+			pixelX+=addX;
 		}
 	}
 }
