@@ -21,6 +21,7 @@ end
 function M:add_to_fov(value)
 	self.fov = LUME.clamp(self.fov + value, MIN_FOV, MAX_FOV)
 	self.ray_angle = self.fov / self.rays
+	native_raycasting.set_camera_fov(self.fov)
 end	
 
 return M

@@ -19,7 +19,13 @@ static struct Texture textures[10];
 static struct Texture spritesTextures[10];
 static double *PRE_CALC_HEIGHT_DISTANCE;
 static double *distanceBuffer;
+static double viewDist = 0;
 std::vector<Sprite> sprites;
+
+static void updateViewDist(){
+	viewDist = (plane.width / 2.0) / tan(camera.fov / 2.0);
+}
+
 void addSprite(double x, double y, int textureId){
 	Sprite sprite = {x,y,textureId,0};
 	sprites.push_back(sprite); 
@@ -39,6 +45,7 @@ void updateCamera(double x, double y, double angle){
 
 void setCameraFov(double fov){
 	setCameraFov(&camera, fov);
+	updateViewDist();
 }
 
 void setBuffer(int width, int height, dmScript::LuaHBuffer* luaBuffer){
@@ -51,6 +58,7 @@ void clearBuffer(){
 
 void updatePlane(int x, int y, int endX, int endY){
 	updatePlane(&plane, x, y, endX, endY);
+	updateViewDist();
 	free(PRE_CALC_HEIGHT_DISTANCE);
 	double size = plane.height>>1;
 	PRE_CALC_HEIGHT_DISTANCE = (double *)malloc(sizeof(double) * size);
@@ -59,6 +67,7 @@ void updatePlane(int x, int y, int endX, int endY){
 	}
 	free(distanceBuffer);
 	distanceBuffer = (double *)malloc(sizeof(double) * plane.width);
+	
 }
 
 void setMap(lua_State* L){
@@ -77,7 +86,7 @@ static bool sortSprites(const Sprite &a, const Sprite &b)
 }
 
 static inline void countVertY(double dist, int* height, int* drawStart, int* drawEnd, double* pixelY, double* pixelYAdd){
-	int lineHeight = ((int)round(plane.height / dist)) & 0xFFFFFFFE; //must be even
+	int lineHeight = ((int)round(viewDist/dist)) & 0xFFFFFFFE; //must be even
 	*pixelYAdd = 1.0/(lineHeight-1);
 	if(lineHeight > plane.height){
 		int halfLineHeight = lineHeight>>1;
@@ -125,7 +134,7 @@ void castRays(){
 		double pixelY, pixelYAdd;
 		countVertY(perpDist,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
 		int textureId = map.walls[mapY][mapX];
-		//printf("pixely:%f addY:%f\n", pixelY, pixelYAdd); 
+		printf("perpDist:%f lineHeight:%f\n", perpDist, lineHeight); 
 		drawWall(x,drawStart, drawEnd, pixelY, pixelYAdd, textureX, textureId);
 		
 		//draw floor and ceilings
