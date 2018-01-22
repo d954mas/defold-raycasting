@@ -29,7 +29,6 @@ end
 local ADD_FOV = 1 * math.pi / 180 
 local function increase_fov(self)
 	WORLD.player.camera:add_to_fov(ADD_FOV)
-	print("here")
 end	
 
 local function decrease_fov(self)

@@ -7,19 +7,19 @@ struct Buffer {
 	int height;
 	uint8_t* stream;
 };
-
+static uint8_t stream2[10];
 
 void initBuffer(struct Buffer*, int, int, dmScript::LuaHBuffer*);
 void clearBuffer(struct Buffer*);
 inline void setPixel(struct Buffer* buffer, int x, int y, Color *color){
-	int id = (y * buffer->width + x) * 3;
-	uint8_t* stream = buffer->stream;
-	uint8_t* colors = color->colors;
+	stream2[1] = 0xFF;
+	//uint8_t* stream = buffer->stream;
+	//uint8_t* colors = color->colors;
 	//memcpy(&stream[id], &colors[0], 3);
-	if(colors[0] == 0xFF){
-		return;
-	}
-	stream[id] = colors[0];
-	stream[id + 1] = colors[1];
-	stream[id + 2] = colors[2];
+	//if(colors[0] == 0xFF){
+	//	return;
+	//}
+	//stream2[1] = 0xFF;
+	//stream[id + 1] = colors[1];
+	//stream[id + 2] = colors[2];
 }

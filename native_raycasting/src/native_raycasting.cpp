@@ -141,6 +141,7 @@ void castRays(){
 		drawWall(x,drawStart, drawEnd, pixelY, pixelYAdd, textureX, textureId);
 		//printf("DrawStart:%d drawEnd:%d\n", drawStart, drawEnd); 
 		//draw floor and ceilings
+		/*
 		int** floors =  map.floors;
 		int** ceils =  map.ceils;
 		for(int y = 0; y < drawStart; y++){
@@ -176,11 +177,12 @@ void castRays(){
 			color = &(floorTexture->pixels[textureY][textureX]);
 		//printf("y:%d\n",plane.height-y-1);
 			setPixel(&buffer, x, plane.height - y-3, color);
-		}
+		}*/
 	}
 	
 	//draw sprites
 	//add 0.5 to get center
+	/*
 	double cameraAngle = TWO_PI - (camera.angle - HALF_PI); 
 	//printf("cameraAngle:%f\n",cameraAngle);
 	double cameraCos = cos(cameraAngle);
@@ -243,5 +245,5 @@ void castRays(){
 			}
 			pixelX+=addX;
 		}
-	}
+	}*/
 }

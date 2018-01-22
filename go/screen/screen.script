@@ -57,7 +57,7 @@ end
 local function test()
 	local camera = WORLD.player.camera
 	local time = os.clock()
-	for i=1, 100 do
+	for i=1, 10000 do
 		native_raycasting.update_camera(camera.position.x, camera.position.y, camera.angle)
 		native_raycasting.cast_rays()
 	end
@@ -67,13 +67,12 @@ end
 function update(self, dt)
 	local camera = WORLD.player.camera
 	WORLD.update_camera()
-	--test()
+	test()
 	--WORLD.player.position.x = LUME.clamp(WORLD.player.position.x, 1.5, 23)
 	--WORLD.player.position.y = LUME.clamp(WORLD.player.position.y, 1.5, 23)
 	--	WORLD.update_camera()
 	local time = os.clock()
 	native_raycasting.update_camera(camera.position.x, camera.position.y, camera.angle)
-	print(camera.position)
 	native_raycasting.cast_rays()
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
