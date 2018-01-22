@@ -2,8 +2,8 @@ local CONST = require "libs.constants"
 local LUME = require "libs.lume"
 local M = {}
 M.__index = M
-local MIN_FOV = 30 * math.pi / 180 
-local MAX_FOV = 180 * math.pi / 180 
+local MIN_FOV = 60 * math.pi / 180 
+local MAX_FOV = 100 * math.pi / 180 
 
 function M.new()
 	local self = setmetatable({}, M)
