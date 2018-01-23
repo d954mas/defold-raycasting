@@ -2,6 +2,7 @@
 #include "raycasting.h"
 #include "world_structures.h"
 
+//some problems here.Looks like mapX and mapY wrong.
 static inline void countStep(int mapX, double startX, double dx, double absDx, int* stepX, double* sx){
 	if (dx>0){
 		*sx = (mapX - startX + 1) * absDx;
@@ -46,11 +47,12 @@ void castRay(struct Camera* camera, int** walls, double rayAngle
 			}
 			*catetX = dist * angleSin;
 			*catetY = dist * angleCos;
-			double n;
 			if(hitX){
-				*textureX = modf(camera->y + *catetY,&n);
+				*textureX = camera->y + *catetY;
+				*textureX -= (int)*textureX;
 			}else{
-				*textureX = modf(camera->x + *catetX,&n);
+				*textureX = camera->x + *catetX;
+				*textureX -= (int)*textureX;
 			}
 			//printf("cameraX:%f\n",camera->x);
 			//printf("catetX:%f\n",*catetY);

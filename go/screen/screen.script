@@ -65,6 +65,7 @@ local function test()
 end	
 
 function update(self, dt)
+	native_raycasting.clear_buffer()
 	local camera = WORLD.player.camera
 	WORLD.update_camera()
 --	test()

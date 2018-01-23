@@ -24,7 +24,10 @@ std::vector<Sprite> sprites;
 
 static void updateViewDist(){
 	double ctanFov = 1.0/tan(camera.fov/2.0);
-	viewDist = ctanFov * (plane.width>>1);
+	viewDist = plane.width/(2 * tan(camera.fov/2.0));
+	printf("plane width:%d\n", plane.width);
+	printf("fov%f\n", camera.fov);
+	printf("viewDist:%f\n",viewDist);
 }
 
 void addSprite(double x, double y, int textureId){

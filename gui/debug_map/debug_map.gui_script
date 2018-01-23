@@ -11,8 +11,8 @@ local player_pos
 local spritex = 18 + 1
 local spritey = 18 + 1
 local function init_map(self)
-	local map_width = 32
-	local map_height = 32
+	local map_width = 24
+	local map_height = 24
 	local pixels = ""
 	self.start_x = map_width - WORLD.map.WIDTH 
 	self.start_y = map_height - WORLD.map.HEIGHT
@@ -60,5 +60,5 @@ function update(self)
 	self.player_pos.x = self.map_pos.x + (self.start_x + WORLD.player.position.x) * SCALE.x
 	self.player_pos.y = self.map_pos.y + (self.start_y + WORLD.player.position.y) * SCALE.y
 	gui.set_position(self.player_node, self.player_pos)
-	--RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
+	RAYS.cast_rays(WORLD.player.camera, WORLD.map.MAP, on_ray_intersept, self)
 end	
