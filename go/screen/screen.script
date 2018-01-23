@@ -57,7 +57,7 @@ end
 local function test()
 	local camera = WORLD.player.camera
 	local time = os.clock()
-	for i=1, 10000 do
+	for i=1, 1000 do
 		native_raycasting.update_camera(camera.position.x, camera.position.y, camera.angle)
 		native_raycasting.cast_rays()
 	end
@@ -77,7 +77,7 @@ function update(self, dt)
 	native_raycasting.cast_rays()
 	local header = {width = SCREEN.WIDTH, height = SCREEN.HEIGHT, type = resource.TEXTURE_TYPE_2D, format = resource.TEXTURE_FORMAT_RGB, num_mip_maps = 0}
 	resource.set_texture(self.resource_path, header, SCREEN.BUFFER)
-	--print("time:" .. os.clock() - time)
+	print("time:" .. os.clock() - time)
 end
 
 
