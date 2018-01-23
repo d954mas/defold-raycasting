@@ -12,5 +12,8 @@ static uint8_t stream2[10];
 void initBuffer(struct Buffer*, int, int, dmScript::LuaHBuffer*);
 void clearBuffer(struct Buffer*);
 inline void setPixel(struct Buffer* buffer, int x, int y, Color *color){
+	if(color->colors[0] == 255){
+		return;
+	}
 	memcpy(&buffer->stream[(y * buffer->width + x) * 3], &color->colors[0], 3);
 }

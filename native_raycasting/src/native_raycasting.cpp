@@ -21,13 +21,18 @@ static double *PRE_CALC_HEIGHT_DISTANCE;
 static double *distanceBuffer;
 static double viewDist = 0;
 std::vector<Sprite> sprites;
-
+std::vector<double> angles;
 static void updateViewDist(){
 	double ctanFov = 1.0/tan(camera.fov/2.0);
 	viewDist = plane.width/(2 * tan(camera.fov/2.0));
 	printf("plane width:%d\n", plane.width);
 	printf("fov%f\n", camera.fov);
 	printf("viewDist:%f\n",viewDist);
+	angles.clear();
+	//double distance = (plane.width>>1)/()
+	for(int x=1;x<=plane.width>>1;x++){
+		angles.push_back(atan(x/viewDist));
+	}
 }
 
 void addSprite(double x, double y, int textureId){
@@ -123,69 +128,8 @@ static inline void drawWall(int x, int drawStart, int drawEnd, double pixelY, do
 	drawVertLine(x, drawStart, drawEnd, pixelY, pixelYAdd, texture->pixels, pixelX);
 }
 
-void castRays(){
-	double currentAngle = - camera.fov / 2.0;
-	double rayAngle = camera.fov/plane.width;
-	double perpDist, catetX, catetY, textureX;
-	int mapX, mapY;
-	for (int x = 0; x < plane.width; x++){
-		castSingleRay(currentAngle, &perpDist, &catetX, &catetY, &mapX, &mapY, &textureX);
-		distanceBuffer[x] = perpDist;
-		double endPositionX = camera.x + catetX;
-		double endPositionY = camera.y + catetY;
-		currentAngle += rayAngle;
-		//fix fov and aspect here
-		//draw wall
-		int lineHeight, drawStart,drawEnd;
-		double pixelY, pixelYAdd;
-		countVertY(perpDist,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
-		int textureId = map.walls[mapY][mapX];
-		//printf("perpDist:%f lineHeight:%f\n", perpDist, lineHeight); 
-		drawWall(x,drawStart, drawEnd, pixelY, pixelYAdd, textureX, textureId);
-		//printf("DrawStart:%d drawEnd:%d\n", drawStart, drawEnd); 
-		//draw floor and ceilings
-		/*
-		int** floors =  map.floors;
-		int** ceils =  map.ceils;
-		for(int y = 0; y < drawStart; y++){
-		//	printf("draw\n");
-			double currentDist = PRE_CALC_HEIGHT_DISTANCE[y];
-			double weight = currentDist/perpDist;
-			double weight2 = 1.0 - weight;
-			//printf("weight:%f\n", weight);
-			double floorX = (weight * endPositionX + weight2 * camera.x);
-			double floorY = (weight * endPositionY + weight2 * camera.y);
-		//	printf("floorX:%f floorY:%f\n", floorX, floorY);
-			int cellX = (int)(floorX);
-			int cellY = (int)(floorY);
-			int floorId = floors[cellY][cellX];
-			int ceilId = ceils[cellY][cellX];
-			//printf("draw2\n");
-			//printf("floor id:%d\n", floorId);
-			Texture* floorTexture = &textures[floorId];
-			int textureX = (floorX - (int)floorX) * floorTexture->width;
-			int textureY = (floorY - (int)floorY) * floorTexture->height;
-		//	printf("draw3\n");
-	//		printf("textureX:%d textureY:%d\n", textureX, textureY);
-			Color *color = &(floorTexture->pixels[textureY][textureX]);
-		//	printf("draw4\n");
-		//	printf("x:%d y:%d\n", x, y);
-			setPixel(&buffer, x, y, color);
-		//	printf("draw5\n");
-
-			floorTexture = &textures[ceilId];
-			//floor and ceil use same width
-		//	textureX = (int)(modf(floorX,&n) * floorTexture->width);
-		//	textureY = (int)(modf(floorY,&n) * floorTexture->height);
-			color = &(floorTexture->pixels[textureY][textureX]);
-		//printf("y:%d\n",plane.height-y-1);
-			setPixel(&buffer, x, plane.height - y-3, color);
-		}*/
-	}
-	
+static inline void drawSprites(){
 	//draw sprites
-	//add 0.5 to get center
-	/*
 	double cameraAngle = TWO_PI - (camera.angle - HALF_PI); 
 	//printf("cameraAngle:%f\n",cameraAngle);
 	double cameraCos = cos(cameraAngle);
@@ -214,7 +158,7 @@ void castRays(){
 		if(sprite->dy<=0){
 			continue;
 		}
-		
+
 		int lineHeight, drawStart,drawEnd;
 		double pixelY, pixelYAdd;
 		countVertY(sprite->dy,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
@@ -226,8 +170,8 @@ void castRays(){
 		int centerX = halfPlaneWidth - (sprite->dx*lineHeight);
 		int startX = centerX - halfLineHeight;
 		int endX = centerX + halfLineHeight;
-	   // printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
-		
+		// printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
+
 		Color** pixels = texture->pixels;
 		double pixelX=0;
 		double addX = (double)(texture->width-1)/(endX-startX);
@@ -248,5 +192,57 @@ void castRays(){
 			}
 			pixelX+=addX;
 		}
-	}*/
+	}
+}
+
+void castRays(){
+	double perpDist, catetX, catetY, textureX;
+	int mapX, mapY;
+	for(int i=0;i<plane.width>>1;i++){
+		double rayAngle = angles[i];
+		for(int j=0;j<2;j++){
+			double currentAngle = (j==1) ? -rayAngle : rayAngle;
+			int x = (j==1) ? (plane.width>>1) - i-1 : (plane.width>>1) + i;
+			castSingleRay(currentAngle, &perpDist, &catetX, &catetY, &mapX, &mapY, &textureX);
+			distanceBuffer[x] = perpDist;
+			double endPositionX = camera.x + catetX;
+			double endPositionY = camera.y + catetY;
+			currentAngle += rayAngle;
+			int lineHeight, drawStart,drawEnd;
+			double pixelY, pixelYAdd;
+			countVertY(perpDist,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
+			int textureId = map.walls[mapY][mapX];
+			drawWall(x,drawStart, drawEnd, pixelY, pixelYAdd, textureX, textureId);
+			//draw floor and ceilings
+			int** floors =  map.floors;
+			int** ceils =  map.ceils;
+			for(int y = 0; y < drawStart; y++){
+				double currentDist = PRE_CALC_HEIGHT_DISTANCE[y];
+				double weight = currentDist/perpDist;
+				double weight2 = 1.0 - weight;
+				//printf("weight:%f\n", weight);
+				double floorX = (weight * endPositionX + weight2 * camera.x);
+				double floorY = (weight * endPositionY + weight2 * camera.y);
+				//	printf("floorX:%f floorY:%f\n", floorX, floorY);
+				int cellX = (int)(floorX);
+				int cellY = (int)(floorY);
+				int floorId = floors[cellY][cellX];
+				int ceilId = ceils[cellY][cellX];
+				//printf("floor id:%d\n", floorId);
+				Texture* floorTexture = &textures[floorId];
+				int textureX = (floorX - (int)floorX) * floorTexture->width;
+				int textureY = (floorY - (int)floorY) * floorTexture->height;
+				//		printf("textureX:%d textureY:%d\n", textureX, textureY);
+				Color *color = &(floorTexture->pixels[textureY][textureX]);
+				//	printf("draw4\n");
+				//	printf("x:%d y:%d\n", x, y);
+				setPixel(&buffer, x, y, color);
+				//	printf("draw5\n");
+				floorTexture = &textures[ceilId];
+				color = &(floorTexture->pixels[textureY][textureX]);
+				setPixel(&buffer, x, plane.height - y-3, color);
+			}
+		}
+	}
+	drawSprites();
 }
