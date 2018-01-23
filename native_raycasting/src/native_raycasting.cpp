@@ -158,7 +158,7 @@ static inline void drawSprites(){
 		if(sprite->dy<=0){
 			continue;
 		}
-
+		double lineHeightDouble = viewDist/sprite->dy;
 		int lineHeight, drawStart,drawEnd;
 		double pixelY, pixelYAdd;
 		countVertY(sprite->dy,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
@@ -167,7 +167,7 @@ static inline void drawSprites(){
 		pixelYAdd = pixelYAdd * (texture->height-1);
 		int halfLineHeight = lineHeight>>1;
 		//sprite->dx += camera.fov/2.0;
-		int centerX = halfPlaneWidth - (sprite->dx*lineHeight);
+		int centerX = halfPlaneWidth - (sprite->dx*lineHeightDouble);
 		int startX = centerX - halfLineHeight;
 		int endX = centerX + halfLineHeight;
 		// printf("centerX:%d startX:%d endX:%d\n ",centerX, startX, endX);
@@ -177,10 +177,8 @@ static inline void drawSprites(){
 		double addX = (double)(texture->width-1)/(endX-startX);
 		if(startX<0){
 			pixelX = addX * -startX;
-		}	
-		if(startX < 0){
 			startX = 0;
-		}
+		}	
 		if(endX > plane.endX-1){
 			endX = plane.endX-1;
 		}
