@@ -17,7 +17,7 @@ void decodeToTexture(dmBuffer::HBuffer hBuffer, struct Texture* texture){
 	int id = 0;
 	for(int y=0; y < outH; y++){
 		for(int x=0; x < outW; x++){
-			Color* color = &pixels[outH - y - 1][x];
+			Color* color = &pixels[x][outH - y - 1];
 			//printf("y:%d x:%d",y,x);
 			color->colors[0] = decodePixels[id*4];
 			color->colors[1] = decodePixels[id*4+1];

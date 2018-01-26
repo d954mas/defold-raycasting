@@ -53,15 +53,20 @@ function init(self)
 end
 
 
-
+local count, total = 0, 0
 local function test()
 	local camera = WORLD.player.camera
 	local time = os.clock()
-	for i=1, 10000 do
+	for i=1, 1000 do
 		native_raycasting.update_camera(camera.position.x, camera.position.y, camera.angle)
 		native_raycasting.cast_rays()
 	end
-	print("time:" .. os.clock() - time)
+	time = os.clock() - time
+	count = count + 1
+	total = total + time
+	
+	print("time:" .. time)
+	print("avg:" .. total/count .. " coint:" .. count)
 end	
 
 function update(self, dt)

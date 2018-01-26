@@ -115,8 +115,13 @@ static inline void countVertY(double dist, int* height, int* drawStart, int* dra
 
 static inline void drawVertLine(int x, int drawStart, int drawEnd,double pixelY, double pixelYAdd, Color** pixels, int pixelX){
 	//printf("drawStart:%d drawEnd:%d\n", drawStart, drawEnd);
+	Color* line = pixels[pixelX];
 	for (int y = drawStart; y < drawEnd; y++) {
 		//setPixel(&buffer, x, y, &pixels[(int)pixelY][pixelX]);
+		setPixel(&buffer, x, y, &line[(int)pixelY]);
+		//bufferPixels[y][0] = line[(int)pixelY].colors[0];
+		//memcpy(&bufferPixels[y][0], &line[(int)pixelY].colors[0], 3);
+		//memcpy(&buffer.stream[(y * buffer.width + x) * 3], &line[(int)pixelY].colors[0], 3);
 		pixelY += pixelYAdd;
 		//printf("pixelY:%f\n", pixelY);
 	}
@@ -216,11 +221,11 @@ static void inline drawFloorsAndCeilings(int x, int drawStart, double perpDist, 
 		Color *color = &(floorTexture->pixels[textureY][textureX]);
 		//	printf("draw4\n");
 		//	printf("x:%d y:%d\n", x, y);
-		//setPixel(&buffer, x, y, color);
+		setPixel(&buffer, x, y, color);
 		//	printf("draw5\n");
 		floorTexture = &textures[ceilId];
 		color = &(floorTexture->pixels[textureY][textureX]);
-	//	setPixel(&buffer, x, plane.height - y-3, color);
+		setPixel(&buffer, x, plane.height - y-3, color);
 	}
 }
 
@@ -245,5 +250,5 @@ void castRays(){
 			drawFloorsAndCeilings(x, drawStart, perpDist, endX, endY);
 		}
 	}
-	//drawSprites();
+	drawSprites();
 }
