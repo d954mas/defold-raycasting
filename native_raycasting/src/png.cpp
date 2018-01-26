@@ -10,6 +10,8 @@ void decodeToTexture(dmBuffer::HBuffer hBuffer, struct Texture* texture){
 	clearArrayColor(texture->pixels, texture->height);
 	texture->width = outW;
 	texture->height = outH;
+	texture->heightM = outH-1;
+	texture->widthM = outW-1;
 	Color **pixels = createTwoArrayColor(outW, outH);
 	texture->pixels = pixels;
 	int id = 0;

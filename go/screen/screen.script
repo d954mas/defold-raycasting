@@ -57,7 +57,7 @@ end
 local function test()
 	local camera = WORLD.player.camera
 	local time = os.clock()
-	for i=1, 1000 do
+	for i=1, 10000 do
 		native_raycasting.update_camera(camera.position.x, camera.position.y, camera.angle)
 		native_raycasting.cast_rays()
 	end
@@ -68,7 +68,7 @@ function update(self, dt)
 	native_raycasting.clear_buffer()
 	local camera = WORLD.player.camera
 	WORLD.update_camera()
---	test()
+	--test()
 	--WORLD.player.position.x = LUME.clamp(WORLD.player.position.x, 1.5, 23)
 	--WORLD.player.position.y = LUME.clamp(WORLD.player.position.y, 1.5, 23)
 	--	WORLD.update_camera()

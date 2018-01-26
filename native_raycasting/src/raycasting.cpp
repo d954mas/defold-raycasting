@@ -14,7 +14,7 @@ static inline void countStep(int mapX, double startX, double dx, double absDx, i
 }
 
 void castRay(struct Camera* camera, int** walls, double rayAngle
-	,double *perpDist, double *catetX,  double *catetY, int *mapXResult, int *mapYResult, double *textureX){
+	,double *perpDist, double *endX,  double *endY, int *mapXResult, int *mapYResult, double *textureX){
 		double angle = camera->angle + rayAngle;
 	int mapX = (int)camera->x, mapY = (int)camera->y;
 	double angleSin = sin(angle), angleCos = cos(angle);
@@ -45,18 +45,15 @@ void castRay(struct Camera* camera, int** walls, double rayAngle
 				sy = sy - absDy; //remove last dy
 				dist = sy;
 			}
-			*catetX = dist * angleSin;
-			*catetY = dist * angleCos;
+			*endX = camera->x + dist * angleSin;
+			*endY = camera->y + dist * angleCos;
 			if(hitX){
-				*textureX = camera->y + *catetY;
+				*textureX = camera->y + *endY;
 				*textureX -= (int)*textureX;
 			}else{
-				*textureX = camera->x + *catetX;
+				*textureX = camera->x + *endX;
 				*textureX -= (int)*textureX;
 			}
-			//printf("cameraX:%f\n",camera->x);
-			//printf("catetX:%f\n",*catetY);
-			//printf("textureX:%f\n",*textureX);
 			*perpDist = dist *  cos(rayAngle);
 			*mapXResult = mapX;
 			*mapYResult = mapY;

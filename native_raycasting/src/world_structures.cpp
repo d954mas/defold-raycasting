@@ -41,6 +41,7 @@ void updatePlane(struct Plane* plane, int x, int y, int endX, int endY){
 	plane->width = endX - x;
 	plane->height = endY - y;
 	plane->halfHeight = plane->height>>1;
+	plane->halfWidth = plane->width>>1;
 }
 
 void parseMap(lua_State* L, struct Map* map){

@@ -8,6 +8,8 @@ union Color {
 struct Texture {
 	int width;
 	int height;
+	int widthM; //weight - 1
+	int heightM; //height - 1
 	Color **pixels;
 };
 
