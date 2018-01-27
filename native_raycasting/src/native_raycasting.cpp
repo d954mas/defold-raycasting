@@ -108,6 +108,7 @@ static inline void countVertY(double dist, int* height, int* drawStart, int* dra
 	int lineHeight = ((int)(viewDist/dist + 0.5)) & 0xFFFFFFFE; //must be even
 	//int lineHeight = ((int)round(viewDist/dist)) & 0xFFFFFFFE; //must be even
 	*pixelYAdd = 1.0/(lineHeight-1);
+	*height = lineHeight;
 	if(lineHeight > plane.height){
 		int halfLineHeight = lineHeight>>1;
 		*pixelY = *pixelYAdd *  ((lineHeight - plane.height)>>1);
@@ -118,7 +119,6 @@ static inline void countVertY(double dist, int* height, int* drawStart, int* dra
 	int halfLineHeight = lineHeight>>1;
 	*drawStart = plane.halfHeight - halfLineHeight;
 	*drawEnd =  plane.halfHeight + halfLineHeight - 1;
-	*height = lineHeight;
 }
 
 static inline void drawVertLine(int x, int drawStart, int drawEnd,double pixelY, double pixelYAdd, Color** pixels, int pixelX){
