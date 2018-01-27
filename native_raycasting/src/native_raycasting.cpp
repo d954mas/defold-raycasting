@@ -23,6 +23,16 @@ static double *distanceBuffer;
 static double viewDist = 0;
 std::vector<Sprite> sprites;
 std::vector<double> angles;
+
+static void preCalc(){
+	int size = plane.halfHeight;
+	double scale = viewDist/plane.height;
+	PRE_CALC_HEIGHT_DISTANCE = (double *)malloc(sizeof(double) * size);
+	for(int i = 0;  i < size; i++){
+		PRE_CALC_HEIGHT_DISTANCE[i] =  size / (double)(size - i) * scale;
+	}
+}
+
 static void updateViewDist(){
 	double ctanFov = 1.0/tan(camera.fov/2.0);
 	viewDist = plane.width/(2 * tan(camera.fov/2.0));
@@ -34,6 +44,7 @@ static void updateViewDist(){
 	for(int x=1;x<=plane.halfWidth;x++){
 		angles.push_back(atan(x/viewDist));
 	}
+	preCalc();
 }
 
 void addSprite(double x, double y, int textureId){
@@ -66,16 +77,13 @@ void clearBuffer(){
 	clearBuffer(&buffer);
 }
 
+
+
 void updatePlane(int x, int y, int endX, int endY){
 	updatePlane(&plane, x, y, endX, endY);
 	updateViewDist();
 	free(PRE_CALC_HEIGHT_DISTANCE);
-	int size = plane.halfHeight;
-	double scale = 0.6;
-	PRE_CALC_HEIGHT_DISTANCE = (double *)malloc(sizeof(double) * size);
-	for(int i = 0;  i < size; i++){
-		PRE_CALC_HEIGHT_DISTANCE[i] =  size / (double)(size - i) * scale;
-	}
+	preCalc();
 	free(distanceBuffer);
 	distanceBuffer = (double *)malloc(sizeof(double) * plane.width);
 	
