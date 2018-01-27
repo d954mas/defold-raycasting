@@ -135,6 +135,14 @@ static inline void drawVertLine(int x, int drawStart, int drawEnd,double pixelY,
 	}
 }
 
+static inline void drawVertLineTransparent(int x, int drawStart, int drawEnd,double pixelY, double pixelYAdd, Color** pixels, int pixelX){
+	Color* line = pixels[pixelX];
+	for (int y = drawStart; y < drawEnd; y++) {
+		setPixelTransparent(&buffer, x, y, &line[(int)pixelY]);
+		pixelY += pixelYAdd;
+	}
+}
+
 static inline void drawWall(int x, int drawStart, int drawEnd, double pixelY, double pixelYAdd, double textureX, int textureId){
 	Texture* texture = &textures[textureId];
 	int pixelX = (int)( (texture->widthM)* textureX);
@@ -199,7 +207,7 @@ static inline void drawSprites(){
 		//printf("pixelY%f addY:%f\n",pixelY,pixelYAdd);
 		for(int x = startX; x<endX; x++){
 			if(sprite->dy <=distanceBuffer[x]){
-				drawVertLine(x, drawStart, drawEnd, pixelY, pixelYAdd, texture->pixels, (int)pixelX);
+				drawVertLineTransparent(x, drawStart, drawEnd, pixelY, pixelYAdd, texture->pixels, (int)pixelX);
 				//printf("pixelX:%f\n",pixelX);
 			}
 			pixelX+=addX;
@@ -226,13 +234,13 @@ static void inline drawFloorsAndCeilings(int x, int drawStart, double perpDist, 
 		int textureX = (floorX - (int)floorX) * floorTexture->widthM;
 		int textureY = (floorY - (int)floorY) * floorTexture->heightM;
 		//		printf("textureX:%d textureY:%d\n", textureX, textureY);
-		Color *color = &(floorTexture->pixels[textureY][textureX]);
+		Color *color = &(floorTexture->pixels[textureX][textureY]);
 		//	printf("draw4\n");
 		//	printf("x:%d y:%d\n", x, y);
 		setPixel(&buffer, x, y, color);
 		//	printf("draw5\n");
 		floorTexture = &textures[ceilId];
-		color = &(floorTexture->pixels[textureY][textureX]);
+		color = &(floorTexture->pixels[textureX][textureY]);
 		setPixel(&buffer, x, plane.height - y-3, color);
 	}
 }

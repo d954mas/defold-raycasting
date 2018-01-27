@@ -48,10 +48,10 @@ void castRay(struct Camera* camera, int** walls, double rayAngle
 			*endX = camera->x + dist * angleSin;
 			*endY = camera->y + dist * angleCos;
 			if(hitX){
-				*textureX = camera->y + *endY;
+				*textureX = *endY;
 				*textureX -= (int)*textureX;
 			}else{
-				*textureX = camera->x + *endX;
+				*textureX = *endX;
 				*textureX -= (int)*textureX;
 			}
 			*perpDist = dist *  cos(rayAngle);
