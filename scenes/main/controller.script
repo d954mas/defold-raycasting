@@ -35,7 +35,7 @@ end
 local function load_sprites()
 	for i=1, SPRITES_NUM do
 		local buffer = resource.load("/assets/images/sprites/sprite" .. i .. ".png")
-		native_raycasting.load_sprite(buffer, i)
+		native_raycasting.load_texture(buffer, 10+i)
 	end	
 end	
 

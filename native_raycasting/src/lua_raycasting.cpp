@@ -50,13 +50,6 @@ static int loadTextureLua(lua_State* L){
 	return 0;
 }
 
-static int loadSpriteLua(lua_State* L){
-	dmScript::LuaHBuffer* buffer = dmScript::CheckBuffer(L, 1);
-	int id = (int)lua_tonumber(L, 2);
-	loadSprite(buffer, id);
-	return 0;
-}
-
 static int addSpriteLua(lua_State* L){
 	double x = lua_tonumber(L, 1);
 	double y = lua_tonumber(L, 2);
@@ -102,7 +95,6 @@ static const luaL_reg Module_methods[] =
 	{"set_buffer", setBufferLua},
 	{"clear_buffer", clearBufferLua},
 	{"load_texture", loadTextureLua},
-	{"load_sprite", loadSpriteLua},
 	{"add_sprite", addSpriteLua}, 
 	{"set_map", setMapLua},
 	{"cast_ray", castRayLua},

@@ -12,39 +12,41 @@
 #include "texture.h"
 #include "png.h"
 
-static struct Camera camera;
-static struct Buffer buffer;
-static struct Map map;
-static struct Plane plane;
-static struct Texture textures[10];
-static struct Texture spritesTextures[10];
-static double *PRE_CALC_HEIGHT_DISTANCE;
-static double *distanceBuffer;
+static Camera camera;
+static Buffer buffer;
+static Map map;
+static Plane plane;
 static double viewDist = 0;
-std::vector<Sprite> sprites;
-std::vector<double> angles;
+static std::vector<Texture> textures;
+static std::vector<double> PRE_CALC_HEIGHT_DISTANCE;
+static std::vector<double> distanceBuffer;
+static std::vector<Sprite> sprites;
+static std::vector<double> angles;
 
-static void preCalc(){
-	int size = plane.halfHeight;
-	double scale = viewDist/plane.height;
-	PRE_CALC_HEIGHT_DISTANCE = (double *)malloc(sizeof(double) * size);
-	for(int i = 0;  i < size; i++){
-		PRE_CALC_HEIGHT_DISTANCE[i] =  size / (double)(size - i) * scale;
-	}
-}
-
-static void updateViewDist(){
-	double ctanFov = 1.0/tan(camera.fov/2.0);
+static void viewDistanceUpdated(){
 	viewDist = plane.width/(2 * tan(camera.fov/2.0));
-	printf("plane width:%d\n", plane.width);
-	printf("fov%f\n", camera.fov);
-	printf("viewDist:%f\n",viewDist);
+	distanceBuffer.resize(plane.width);
+	PRE_CALC_HEIGHT_DISTANCE.resize(plane.width);
+	PRE_CALC_HEIGHT_DISTANCE.clear();
+	angles.resize(plane.halfWidth);
 	angles.clear();
-	//double distance = (plane.width>>1)/()
 	for(int x=1;x<=plane.halfWidth;x++){
 		angles.push_back(atan(x/viewDist));
 	}
-	preCalc();
+	double scale = viewDist/plane.height;
+	for(int i = 0;  i < plane.halfHeight; i++){
+		PRE_CALC_HEIGHT_DISTANCE.push_back(plane.halfHeight / (double)(plane.halfHeight - i) * scale);
+	}
+}
+
+void setCameraFov(double fov){
+	setCameraFov(&camera, fov);
+	viewDistanceUpdated();
+}
+
+void updatePlane(int x, int y, int endX, int endY){
+	updatePlane(&plane, x, y, endX, endY);
+	viewDistanceUpdated();
 }
 
 void addSprite(double x, double y, int textureId){
@@ -53,20 +55,14 @@ void addSprite(double x, double y, int textureId){
 }
 
 void loadTexture(dmScript::LuaHBuffer* luaBuffer, int id){
+	if(id>=textures.size()){
+		textures.resize(id+1);
+	}
 	decodeToTexture(luaBuffer->m_Buffer, &textures[id]);
-}
-
-void loadSprite(dmScript::LuaHBuffer* luaBuffer, int id){
-	decodeToTexture(luaBuffer->m_Buffer, &spritesTextures[id]);
 }
 
 void updateCamera(double x, double y, double angle){
 	updateCamera(&camera, x, y, angle);
-}
-
-void setCameraFov(double fov){
-	setCameraFov(&camera, fov);
-	updateViewDist();
 }
 
 void setBuffer(int width, int height, dmScript::LuaHBuffer* luaBuffer){
@@ -75,18 +71,6 @@ void setBuffer(int width, int height, dmScript::LuaHBuffer* luaBuffer){
 
 void clearBuffer(){
 	clearBuffer(&buffer);
-}
-
-
-
-void updatePlane(int x, int y, int endX, int endY){
-	updatePlane(&plane, x, y, endX, endY);
-	updateViewDist();
-	free(PRE_CALC_HEIGHT_DISTANCE);
-	preCalc();
-	free(distanceBuffer);
-	distanceBuffer = (double *)malloc(sizeof(double) * plane.width);
-	
 }
 
 void setMap(lua_State* L){
@@ -99,8 +83,7 @@ void castSingleRay(double rayAngle, double *perpDist, double *endX,
 			endY, mapXResult, mapYResult, textureX);
 }
 
-static bool sortSprites(const Sprite &a, const Sprite &b)
-{
+static bool sortSprites(const Sprite &a, const Sprite &b){
 	return a.dy > b.dy;
 }
 
@@ -184,7 +167,7 @@ static inline void drawSprites(){
 		int lineHeight, drawStart,drawEnd;
 		double pixelY, pixelYAdd;
 		countVertY(sprite->dy,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
-		Texture* texture = &spritesTextures[sprite->textureId];
+		Texture* texture = &textures[sprite->textureId];
 		pixelY = pixelY * (texture->heightM);
 		pixelYAdd = pixelYAdd * (texture->heightM);
 		int halfLineHeight = lineHeight>>1;
@@ -241,7 +224,7 @@ static void inline drawFloorsAndCeilings(int x, int drawStart, double perpDist, 
 		//	printf("draw5\n");
 		floorTexture = &textures[ceilId];
 		color = &(floorTexture->pixels[textureX][textureY]);
-		setPixel(&buffer, x, plane.height - y-3, color);
+		setPixel(&buffer, x, plane.height - y-1, color);
 	}
 }
 
@@ -259,7 +242,7 @@ void castRays(){
 			int x = (j==1) ? (plane.halfWidth) - i-1 : (plane.halfWidth) + i;
 			//cast ray
 			castSingleRay(currentAngle, &perpDist, &endX, &endY, &mapX, &mapY, &textureX);
-			distanceBuffer[x] = perpDist;
+			distanceBuffer[x] =  perpDist;
 			//draw wall
 			countVertY(perpDist,&lineHeight,&drawStart,&drawEnd,&pixelY, &pixelYAdd);
 			drawWall(x,drawStart, drawEnd, pixelY, pixelYAdd, textureX, map.walls[mapY][mapX]);
